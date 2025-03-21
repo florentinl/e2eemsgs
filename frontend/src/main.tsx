@@ -11,7 +11,8 @@ import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
 
 import './styles.css'
 
-import App from './App.tsx'
+import DemoCrypto from './pages/DemoCrypto.tsx'
+import { createTheme, CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material'
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -25,10 +26,16 @@ const rootRoute = createRootRoute({
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
-  component: App,
+  component: DemoCrypto,
 })
 
-const routeTree = rootRoute.addChildren([indexRoute])
+const loginRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: '/login',
+  component: () => <div>Login</div>,
+})
+
+const routeTree = rootRoute.addChildren([indexRoute, loginRoute])
 
 const router = createRouter({
   routeTree,
@@ -45,12 +52,30 @@ declare module '@tanstack/react-router' {
   }
 }
 
+
+const App = () => {
+  const prefers_dark_mode = useMediaQuery('(prefers-color-scheme: dark)');
+  const theme = createTheme({
+    colorSchemes: prefers_dark_mode ? {
+      dark: true
+    } : {
+      light: true
+    }
+  })
+  return (
+    <StrictMode>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </StrictMode>
+  )
+}
+
 const rootElement = document.getElementById('app')
 if (rootElement && !rootElement.innerHTML) {
   const root = ReactDOM.createRoot(rootElement)
   root.render(
-    <StrictMode>
-      <RouterProvider router={router} />
-    </StrictMode>,
+    <App />
   )
 }
