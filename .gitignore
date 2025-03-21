@@ -10,5 +10,4 @@ dist-ssr
 # Rust
 target/
 bin/
-pkg/
 wasm-pack.log
