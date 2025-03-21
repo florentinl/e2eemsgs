@@ -5,10 +5,16 @@ import topLevelAwait from "vite-plugin-top-level-await";
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  plugins: [viteReact(), wasm(), topLevelAwait()],
+  plugins: [viteReact({
+    babel: {
+      plugins: ["babel-plugin-react-compiler"]
+    }
+  }), wasm(), topLevelAwait()],
   test: {
     globals: true,
     environment: "jsdom",
   },
-
+  build: {
+    chunkSizeWarningLimit: 1000,
+  }
 });
