@@ -13,6 +13,7 @@ import './styles.css'
 
 import DemoCrypto from './pages/DemoCrypto.tsx'
 import { createTheme, CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material'
+import Login from './pages/Login.tsx'
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -32,7 +33,7 @@ const indexRoute = createRoute({
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/login',
-  component: () => <div>Login</div>,
+  component: Login,
 })
 
 const routeTree = rootRoute.addChildren([indexRoute, loginRoute])
