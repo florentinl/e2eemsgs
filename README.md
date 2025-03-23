@@ -31,3 +31,27 @@ npm run start
 # Or build it for production
 npm run build
 ```
+
+### Backend
+
+Requirements:
+
+- python3.12
+- pip
+- venv
+
+Run the backend:
+
+```bash
+cd backend
+
+# Create and enter virtual env
+python3 -m venv .venv
+source .venv/bin/activate
+
+# Install dependencies
+python3 -m pip install -r ./requirements.txt
+
+# Run the frontend
+python3 -m uvicorn main:app --reload
+```

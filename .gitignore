@@ -11,3 +11,8 @@ dist-ssr
 target/
 bin/
 wasm-pack.log
+
+# Backend
+backend/.venv
+backend/database
+backend/__pycache__

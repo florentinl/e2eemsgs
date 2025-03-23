@@ -101,8 +101,8 @@ function takeFromExternrefTable0(idx) {
 /**
  * Derives an X25519 key pair from a given password and salt using Argon2 key stretching.
  *
- * The function hashes the password with a base64-encoded salt using Argon2, then encodes the result
- * as a Bech32 string. The derived key pair is stored internally, and the public key is returned as a Bech32-encoded string.
+ * The function hashes the password with a base64-encoded salt using Argon2, and derives an X25519 private key from the hash.
+ * The public key is returned as a Bech32-encoded string while the private key is kept inside the wasm module for later use.
  *
  * # Arguments
  *
