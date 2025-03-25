@@ -46,7 +46,15 @@
 
             nodejs_23
 
-            python3
+            (python3.withPackages (
+              ps: with ps; [
+                fastapi
+                uvicorn
+                sqlalchemy
+
+                pip
+              ]
+            ))
             ruff
           ];
         }

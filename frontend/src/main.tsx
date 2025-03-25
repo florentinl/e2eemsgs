@@ -1,19 +1,24 @@
-import { StrictMode } from 'react'
-import ReactDOM from 'react-dom/client'
+import { StrictMode } from "react";
+import ReactDOM from "react-dom/client";
 import {
   Outlet,
   RouterProvider,
   createRootRoute,
   createRoute,
   createRouter,
-} from '@tanstack/react-router'
-import { TanStackRouterDevtools } from '@tanstack/react-router-devtools'
+} from "@tanstack/react-router";
+import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
-import './styles.css'
+import "./styles.css";
 
-import DemoCrypto from './pages/DemoCrypto.tsx'
-import { createTheme, CssBaseline, ThemeProvider, useMediaQuery } from '@mui/material'
-import Login from './pages/Login.tsx'
+import DemoCrypto from "./pages/DemoCrypto.tsx";
+import {
+  createTheme,
+  CssBaseline,
+  ThemeProvider,
+  useMediaQuery,
+} from "@mui/material";
+import Login from "./pages/Login.tsx";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -22,47 +27,48 @@ const rootRoute = createRootRoute({
       <TanStackRouterDevtools />
     </>
   ),
-})
+});
 
 const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/',
+  path: "/",
   component: DemoCrypto,
-})
+});
 
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: '/login',
+  path: "/login",
   component: Login,
-})
+});
 
-const routeTree = rootRoute.addChildren([indexRoute, loginRoute])
+const routeTree = rootRoute.addChildren([indexRoute, loginRoute]);
 
 const router = createRouter({
   routeTree,
   context: {},
-  defaultPreload: 'intent',
+  defaultPreload: "intent",
   scrollRestoration: true,
   defaultStructuralSharing: true,
   defaultPreloadStaleTime: 0,
-})
+});
 
-declare module '@tanstack/react-router' {
+declare module "@tanstack/react-router" {
   interface Register {
-    router: typeof router
+    router: typeof router;
   }
 }
 
-
 const App = () => {
-  const prefers_dark_mode = useMediaQuery('(prefers-color-scheme: dark)');
+  const prefers_dark_mode = useMediaQuery("(prefers-color-scheme: dark)");
   const theme = createTheme({
-    colorSchemes: prefers_dark_mode ? {
-      dark: true
-    } : {
-      light: true
-    }
-  })
+    colorSchemes: prefers_dark_mode
+      ? {
+          dark: true,
+        }
+      : {
+          light: true,
+        },
+  });
   return (
     <StrictMode>
       <ThemeProvider theme={theme}>
@@ -70,13 +76,11 @@ const App = () => {
         <RouterProvider router={router} />
       </ThemeProvider>
     </StrictMode>
-  )
-}
+  );
+};
 
-const rootElement = document.getElementById('app')
+const rootElement = document.getElementById("app");
 if (rootElement && !rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement)
-  root.render(
-    <App />
-  )
+  const root = ReactDOM.createRoot(rootElement);
+  root.render(<App />);
 }
