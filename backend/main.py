@@ -1,47 +1,28 @@
-from sqlalchemy import create_engine, Column, Integer, String
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import sessionmaker, Session
-from fastapi import FastAPI, Depends
-from pydantic import BaseModel
+from contextlib import asynccontextmanager
+from fastapi import FastAPI
+from models import create_db_and_tables
+from api import router
 
-DATABASE_URL = "sqlite:///./database"
+import logging
 
-app = FastAPI()
-
-engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
+logger = logging.getLogger("uvicorn")
 
 
-Base = declarative_base()
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    logger.info("Creating database and tables...")
+    create_db_and_tables()
+    yield
 
 
-class User(Base):
-    __tablename__ = "users"
-    id = Column(Integer, primary_key=True, index=True)
-    username = Column(String, index=True)
-    public_key = Column(String, index=True)
+app = FastAPI(lifespan=lifespan)
+app.include_router(router)
 
 
-Base.metadata.create_all(bind=engine)
+if __name__ == "__main__":
+    import sys
+    import uvicorn
 
+    reload = "--reload" in sys.argv
 
-def get_db():
-    db = SessionLocal()
-    try:
-        yield db
-    finally:
-        db.close()
-
-
-class UserCreate(BaseModel):
-    username: str
-    public_key: str
-
-
-@app.post("/users/", response_model=int)
-def create_user(user: UserCreate, db: Session = Depends(get_db)):
-    new_user = User(username=user.username, public_key=user.public_key)
-    db.add(new_user)
-    db.commit()
-    db.refresh(new_user)
-    return new_user.id
+    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=reload)
