@@ -19,6 +19,8 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import Login from "./pages/Login.tsx";
+import WebSocketDemo from "./pages/WebSocketDemo.tsx";
+import { WebSocketProvider } from "./hooks.tsx";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -41,7 +43,13 @@ const loginRoute = createRoute({
   component: Login,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, loginRoute]);
+const wsDemoRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/ws",
+  component: WebSocketDemo,
+});
+
+const routeTree = rootRoute.addChildren([indexRoute, loginRoute, wsDemoRoute]);
 
 const router = createRouter({
   routeTree,
@@ -71,10 +79,12 @@ const App = () => {
   });
   return (
     <StrictMode>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <RouterProvider router={router} />
-      </ThemeProvider>
+      <WebSocketProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <RouterProvider router={router} />
+        </ThemeProvider>
+      </WebSocketProvider>
     </StrictMode>
   );
 };
