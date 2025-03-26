@@ -19,7 +19,7 @@ import {
   useMediaQuery,
 } from "@mui/material";
 import Login from "./pages/Login.tsx";
-import WebSocketDemo from "./pages/WebSocketDemo.tsx";
+import Chat from "./pages/Chat.tsx";
 import { WebSocketProvider } from "./hooks.tsx";
 
 const rootRoute = createRootRoute({
@@ -45,8 +45,8 @@ const loginRoute = createRoute({
 
 const wsDemoRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/ws",
-  component: WebSocketDemo,
+  path: "/chat",
+  component: Chat,
 });
 
 const routeTree = rootRoute.addChildren([indexRoute, loginRoute, wsDemoRoute]);

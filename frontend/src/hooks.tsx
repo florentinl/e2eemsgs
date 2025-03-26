@@ -6,14 +6,15 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
+import type { Groups, SendMessage } from "./types";
 
 const WS_URL = `${window.location.protocol === "https:" ? "wss://" : "ws://"}${
   window.location.host
 }/api/ws`;
 
 interface WebSocketContextType {
-  sendMessage: (message: object) => void;
-  lastMessage: object;
+  sendMessage: (message: SendMessage) => void;
+  groups: Groups;
   isConnected: boolean;
 }
 
@@ -21,11 +22,41 @@ const WebSocketContext = createContext<WebSocketContextType | undefined>(
   undefined
 );
 
+const makeMessages = (n: number) => {
+  const messages = [];
+  for (let i = 0; i < n; i++) {
+    messages.push({
+      id: i.toString(),
+      sender: {
+        id: i.toString(),
+        username: `User ${i}`,
+        publickey: `PublicKey ${i}`,
+      },
+      content: `Message ${i}`,
+    });
+  }
+  return messages;
+};
+
+const makeGroups: (n: number) => Groups = (n) => {
+  const groups: Groups = new Map();
+  for (let i = 1; i <= n; i++) {
+    groups.set(i.toString(), {
+      name: `Group ${i}`,
+      id: i.toString(),
+      symmetricKey: "",
+      members: new Set(),
+      messages: makeMessages(20),
+    });
+  }
+  return groups;
+};
+
 export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   children,
 }) => {
   const ws = useRef<WebSocket | null>(null);
-  const [lastMessage, setLastMessage] = useState<object>({});
+  const [groups] = useState<Groups>(makeGroups(10));
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
@@ -40,7 +71,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
 
       ws.current.onmessage = (event) => {
         const data = JSON.parse(event.data);
-        setLastMessage(data);
+        console.log("Received message:", data);
       };
 
       ws.current.onerror = (error) => {
@@ -71,9 +102,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   };
 
   return (
-    <WebSocketContext.Provider
-      value={{ sendMessage, lastMessage, isConnected }}
-    >
+    <WebSocketContext.Provider value={{ sendMessage, groups, isConnected }}>
       {children}
     </WebSocketContext.Provider>
   );

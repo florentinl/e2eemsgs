@@ -16,3 +16,7 @@ wasm-pack.log
 backend/.venv
 backend/database
 __pycache__
+
+*storybook.log
+stories
+.storybook
