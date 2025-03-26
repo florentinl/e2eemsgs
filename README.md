@@ -8,9 +8,8 @@ Requirements:
 
 - Node.js (v23 should work with v20 as well)
 - (optional) Rust (v1.85)
-    - Install with `rustup` and add the `wasm32-unknown-unknown` target with `rustup target add wasm32-unknown-unknown`
-    - Install `wasm-pack` with `cargo install wasm-pack`
-
+  - Install with `rustup` and add the `wasm32-unknown-unknown` target with `rustup target add wasm32-unknown-unknown`
+  - Install `wasm-pack` with `cargo install wasm-pack`
 
 Run the frontend:
 
@@ -53,5 +52,5 @@ source .venv/bin/activate
 python3 -m pip install -r ./requirements.txt
 
 # Run the frontend
-python3 -m uvicorn main:app --reload
+python3 -m main --reload
 ```

@@ -32,6 +32,8 @@
           };
         in
         pkgs.mkShell {
+          venvDir = "backend/.venv";
+
           packages = with pkgs; [
             (pkgs.rust-bin.stable.latest.default.override {
               extensions = [
@@ -46,15 +48,8 @@
 
             nodejs_23
 
-            (python3.withPackages (
-              ps: with ps; [
-                fastapi
-                uvicorn
-                sqlalchemy
-
-                pip
-              ]
-            ))
+            python3Packages.venvShellHook
+            python3Packages.pip
             ruff
           ];
         }
