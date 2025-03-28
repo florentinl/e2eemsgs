@@ -1,9 +1,16 @@
+from random import choice
+from string import ascii_letters, digits
+
 from fastapi import APIRouter
+from models import User, engine
 from sqlmodel import Session
 
-from models import User, engine
-
 router = APIRouter()
+
+
+def generate_random_string(n: int) -> str:
+    symbols = ascii_letters + digits
+    return "".join(choice(symbols) for _ in range(n))
 
 
 @router.post("/auth/signup")

@@ -3,7 +3,10 @@
     "python.analysis.typeCheckingMode": "strict",
     "editor.formatOnSave": true,
     "[python]": {
-        "editor.defaultFormatter": "charliermarsh.ruff"
+        "editor.defaultFormatter": "charliermarsh.ruff",
+        "editor.codeActionsOnSave": {
+            "source.organizeImports": "always"
+        }
     },
     "[jsonc]": {
         "editor.defaultFormatter": "vscode.json-language-features"

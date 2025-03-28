@@ -1,5 +1,4 @@
-from sqlmodel import SQLModel, create_engine, Field
-
+from sqlmodel import Field, SQLModel, create_engine
 
 DATABASE_URL = "sqlite:///./database"
 engine = create_engine(DATABASE_URL, connect_args={"check_same_thread": False})

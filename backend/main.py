@@ -1,9 +1,9 @@
+import logging
 from contextlib import asynccontextmanager
+
+from api import router
 from fastapi import FastAPI
 from models import create_db_and_tables
-from api import router
-
-import logging
 
 logger = logging.getLogger("uvicorn")
 
@@ -21,6 +21,7 @@ app.include_router(router)
 
 if __name__ == "__main__":
     import sys
+
     import uvicorn
 
     reload = "--reload" in sys.argv

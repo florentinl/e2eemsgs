@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from api.authentication import router as authentication_router
 from api.websocket import router as websocket_router
 
