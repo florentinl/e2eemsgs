@@ -4,7 +4,7 @@ import ChatTopBar from "../components/ChatTopBar";
 import GroupSidebar from "../components/GroupSideBar";
 import MessageInput from "../components/MessageInput";
 import MessageDisplay from "../components/Message";
-import { useWebSocket } from "../hooks";
+import { useWebSocket } from "../hooks/websockets";
 import LoadingPage from "./LoadingPage";
 
 const ChatPage: React.FC<{}> = () => {

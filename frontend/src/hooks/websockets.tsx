@@ -6,7 +6,7 @@ import React, {
   useState,
   type ReactNode,
 } from "react";
-import type { Groups, SendMessage } from "./types";
+import type { Groups, SendMessage } from "../types";
 
 const WS_URL = `${window.location.protocol === "https:" ? "wss://" : "ws://"}${
   window.location.host
