@@ -1,4 +1,11 @@
-import { asym_decrypt, derive_key_pair, asym_encrypt } from "argon2wasm";
+import {
+  asym_decrypt,
+  derive_key_pair,
+  asym_encrypt,
+  sym_decrypt,
+  generate_sym_key,
+  sym_encrypt,
+} from "argon2wasm";
 import { useRef, useState } from "react";
 import { Box, Input } from "@mui/material";
 import { useCryptoWasmReady } from "../hooks/cryptoWasm";
@@ -13,6 +20,17 @@ function App() {
   const [publicKey, setPublicKey] = useState<string>();
   const [cipherBytes, setCipherBytes] = useState<Uint8Array>();
   const [clearText, setClearText] = useState<string>();
+
+  const testSymEnc = () => {
+    const key = generate_sym_key();
+    const msg = "This is a hello msg";
+    const encrypted_message = sym_encrypt(msg, key);
+
+    const decrypt_message = sym_decrypt(encrypted_message, key);
+
+    console.log(msg == decrypt_message);
+    console.log(encrypted_message);
+  };
 
   const onClick = () => {
     const password = passwordRef.current?.value;
@@ -66,6 +84,11 @@ function App() {
       <Box>
         <p>Clear Text</p>
         <p>{clearText}</p>
+      </Box>
+      <Box>
+        <button onClick={testSymEnc} disabled={!initialized}>
+          Test Symmetric Encryption
+        </button>
       </Box>
     </Box>
   );

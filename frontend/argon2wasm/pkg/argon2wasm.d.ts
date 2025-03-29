@@ -18,7 +18,21 @@
  */
 export function derive_key_pair(password: string, salt: string): string;
 export function asym_encrypt(data: string, public_key: string): Uint8Array;
+export function asym_encrypt_bytes(data: Uint8Array, public_key: string): Uint8Array;
 export function asym_decrypt(data: Uint8Array): string;
+export function asym_decrypt_bytes(data: Uint8Array): Uint8Array;
+export function generate_sym_key(): Uint8Array;
+export function sym_encrypt_bytes(data: Uint8Array, key: Uint8Array): EncryptedMessage;
+export function sym_encrypt(data: string, key: Uint8Array): EncryptedMessage;
+export function sym_decrypt_bytes(message: EncryptedMessage, key: Uint8Array): Uint8Array;
+export function sym_decrypt(message: EncryptedMessage, key: Uint8Array): string;
+
+type EncryptedMessage = {
+  nonce: Uint8Array,
+  message: Uint8Array
+}
+
+
 
 export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembly.Module;
 
@@ -27,11 +41,18 @@ export interface InitOutput {
   readonly derive_key_pair: (a: number, b: number, c: number, d: number) => [number, number, number, number];
   readonly asym_encrypt: (a: number, b: number, c: number, d: number) => [number, number, number, number];
   readonly asym_decrypt: (a: number, b: number) => [number, number, number, number];
-  readonly __wbindgen_exn_store: (a: number) => void;
-  readonly __externref_table_alloc: () => number;
-  readonly __wbindgen_export_2: WebAssembly.Table;
+  readonly asym_decrypt_bytes: (a: number, b: number) => [number, number, number, number];
+  readonly asym_encrypt_bytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+  readonly generate_sym_key: () => [number, number];
+  readonly sym_encrypt_bytes: (a: number, b: number, c: number, d: number) => [number, number, number];
+  readonly sym_encrypt: (a: number, b: number, c: number, d: number) => [number, number, number];
+  readonly sym_decrypt_bytes: (a: any, b: number, c: number) => [number, number, number, number];
+  readonly sym_decrypt: (a: any, b: number, c: number) => [number, number, number, number];
   readonly __wbindgen_malloc: (a: number, b: number) => number;
   readonly __wbindgen_realloc: (a: number, b: number, c: number, d: number) => number;
+  readonly __wbindgen_exn_store: (a: number) => void;
+  readonly __externref_table_alloc: () => number;
+  readonly __wbindgen_export_4: WebAssembly.Table;
   readonly __externref_table_dealloc: (a: number) => void;
   readonly __wbindgen_free: (a: number, b: number, c: number) => void;
   readonly __wbindgen_start: () => void;
