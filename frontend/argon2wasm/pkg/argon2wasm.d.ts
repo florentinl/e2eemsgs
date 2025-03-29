@@ -25,8 +25,8 @@ export type InitInput = RequestInfo | URL | Response | BufferSource | WebAssembl
 export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly derive_key_pair: (a: number, b: number, c: number, d: number) => [number, number, number, number];
-  readonly asym_encrypt: (a: number, b: number, c: number, d: number) => [number, number];
-  readonly asym_decrypt: (a: number, b: number) => [number, number];
+  readonly asym_encrypt: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+  readonly asym_decrypt: (a: number, b: number) => [number, number, number, number];
   readonly __wbindgen_exn_store: (a: number) => void;
   readonly __externref_table_alloc: () => number;
   readonly __wbindgen_export_2: WebAssembly.Table;

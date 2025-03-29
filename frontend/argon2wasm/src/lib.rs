@@ -1,8 +1,8 @@
 use std::{str::FromStr, sync::Mutex};
 
 use age::x25519::{Identity, Recipient};
-use argon2::{password_hash::SaltString, Argon2, Params, PasswordHasher};
-use base64::{prelude::BASE64_STANDARD_NO_PAD, Engine};
+use argon2::{Argon2, Params, PasswordHasher, password_hash::SaltString};
+use base64::{Engine, prelude::BASE64_STANDARD_NO_PAD};
 use bech32::{Bech32, Hrp};
 use lazy_static::lazy_static;
 use wasm_bindgen::prelude::*;
@@ -26,7 +26,7 @@ lazy_static! {
 ///
 /// * `Ok(String)` - A Bech32-encoded public key string if key derivation is successful.
 /// * `Err(String)` - An error message if key derivation fails.
-pub fn derive_key_pair(password: &str, salt: &str) -> Result<String, String> {
+pub fn derive_key_pair(password: &str, salt: &str) -> Result<String, JsError> {
     // Default len is 32 bytes and customizing the params is annoying, so just asserting that the default is what we expect.
     assert_eq!(Params::DEFAULT_OUTPUT_LEN, 32);
 
@@ -37,16 +37,21 @@ pub fn derive_key_pair(password: &str, salt: &str) -> Result<String, String> {
     // Encode salt as base64
     let salt = BASE64_STANDARD_NO_PAD.encode(salt);
 
-    let salt = SaltString::from_b64(&salt).unwrap();
+    let salt = SaltString::from_b64(&salt).map_err(|e| JsError::new(&e.to_string()))?;
 
-    let hashed = argon2.hash_password(password, &salt).unwrap();
+    let hashed = argon2
+        .hash_password(password, &salt)
+        .map_err(|e| JsError::new(&e.to_string()))?;
 
-    let data = hashed.hash.unwrap();
+    let data = hashed
+        .hash
+        .ok_or(JsError::new("Error occured during hashing of variable"))?;
     // Bech32 encode the data
-    let hrp = Hrp::parse("age-secret-key-").unwrap();
-    let data = bech32::encode::<Bech32>(hrp, data.as_bytes()).unwrap();
+    let hrp = Hrp::parse("age-secret-key-").map_err(|e| JsError::new(&e.to_string()))?;
+    let data =
+        bech32::encode::<Bech32>(hrp, data.as_bytes()).map_err(|e| JsError::new(&e.to_string()))?;
 
-    let identity = Identity::from_str(&data).unwrap();
+    let identity = Identity::from_str(&data).map_err(|e| JsError::new(&e.to_string()))?;
     let recipient = identity.to_public();
     IDENTITY.lock().unwrap().replace(identity);
 
@@ -54,19 +59,21 @@ pub fn derive_key_pair(password: &str, salt: &str) -> Result<String, String> {
 }
 
 #[wasm_bindgen]
-pub fn asym_encrypt(data: &str, public_key: &str) -> Vec<u8> {
-    let recipient = Recipient::from_str(public_key).unwrap();
-    age::encrypt(&recipient, data.as_bytes()).unwrap()
+pub fn asym_encrypt(data: &str, public_key: &str) -> Result<Vec<u8>, JsError> {
+    let recipient = Recipient::from_str(public_key).map_err(|e| JsError::new(&e.to_string()))?;
+    age::encrypt(&recipient, data.as_bytes()).map_err(|e| JsError::new(&e.to_string()))
 }
 
 #[wasm_bindgen]
-pub fn asym_decrypt(data: &[u8]) -> String {
+pub fn asym_decrypt(data: &[u8]) -> Result<String, JsError> {
     let identity = IDENTITY.lock().unwrap();
-    let identity = identity.as_ref().unwrap();
+    let identity = identity.as_ref().ok_or(JsError::new(
+        "Keys are not ready yet, ensure that the user is logged in",
+    ))?;
 
-    let decrypted = age::decrypt(identity, data).unwrap();
+    let decrypted = age::decrypt(identity, data).map_err(|e| JsError::new(&e.to_string()))?;
 
-    String::from_utf8(decrypted).unwrap()
+    String::from_utf8(decrypted).map_err(|e| JsError::new(&e.to_string()))
 }
 
 #[cfg(test)]
@@ -87,8 +94,8 @@ mod tests {
         let salt = "toto@gmail.com";
         let recipient = derive_key_pair(password, salt).unwrap();
         let data = "Hello, world!";
-        let encrypted = asym_encrypt(data, &recipient);
-        let decrypted = asym_decrypt(&encrypted);
+        let encrypted = asym_encrypt(data, &recipient).unwrap();
+        let decrypted = asym_decrypt(&encrypted).unwrap();
         assert_eq!(data, decrypted);
     }
 }
