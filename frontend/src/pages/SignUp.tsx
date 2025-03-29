@@ -23,10 +23,12 @@ const SignUp = () => {
     confirmPassword: "",
   });
 
+  // states used to know what textfields must be set as error, and what error to display
   const [usernameError,setUsernameError] = useState(false)
   const [passwordError,setPasswordError] = useState(false)
   const [confirmPasswordError,setConfirmPasswordError] = useState(false)
 
+  // states controling whether the info box is shown, and what to show
   const [showInfo,setShowInfo] = useState(false)
   const [infoContent,setInfoContent] = useState("")
   const [isInfoError, setIsInfoError] = useState(false)
@@ -63,13 +65,11 @@ const SignUp = () => {
     }
 
     if (usernameOk && passwordOk && confirmPasswordOk) {
-      console.log("Loging in with credentials: ", credentials)
       sendSignUp(credentials.username,credentials.password)
     }
   };
 
   const  sendSignUp =  (username: string, password: string) => {
-    console.log("crypto context initialized: ",initialized)
     if (initialized) {
       const publicKey = derive_key_pair(password, username)
     
@@ -78,6 +78,7 @@ const SignUp = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: username, public_key: publicKey })
         };
+        console.log("signing up with: ",{ username: username, public_key: publicKey })
         fetch('/api/auth/signup', requestOptions)
           .then(response => {
             if (response.ok) {

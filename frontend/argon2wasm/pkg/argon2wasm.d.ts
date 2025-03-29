@@ -17,9 +17,9 @@
  * * `Err(String)` - An error message if key derivation fails.
  */
 export function derive_key_pair(password: string, salt: string): string;
-export function asym_encrypt(data: string, public_key: string): Uint8Array;
+export function asym_encrypt(data: string, public_key: string): string;
 export function asym_encrypt_bytes(data: Uint8Array, public_key: string): Uint8Array;
-export function asym_decrypt(data: Uint8Array): string;
+export function asym_decrypt(data: string): string;
 export function asym_decrypt_bytes(data: Uint8Array): Uint8Array;
 export function generate_sym_key(): Uint8Array;
 export function sym_encrypt_bytes(data: Uint8Array, key: Uint8Array): EncryptedMessage;
@@ -40,9 +40,9 @@ export interface InitOutput {
   readonly memory: WebAssembly.Memory;
   readonly derive_key_pair: (a: number, b: number, c: number, d: number) => [number, number, number, number];
   readonly asym_encrypt: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+  readonly asym_encrypt_bytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];
   readonly asym_decrypt: (a: number, b: number) => [number, number, number, number];
   readonly asym_decrypt_bytes: (a: number, b: number) => [number, number, number, number];
-  readonly asym_encrypt_bytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];
   readonly generate_sym_key: () => [number, number];
   readonly sym_encrypt_bytes: (a: number, b: number, c: number, d: number) => [number, number, number];
   readonly sym_encrypt: (a: number, b: number, c: number, d: number) => [number, number, number];

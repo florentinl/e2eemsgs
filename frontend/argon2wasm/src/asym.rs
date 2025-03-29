@@ -2,7 +2,11 @@ use std::{str::FromStr, sync::Mutex};
 
 use age::x25519::{Identity, Recipient};
 use argon2::{Argon2, Params, PasswordHasher, password_hash::SaltString};
-use base64::{Engine, prelude::BASE64_STANDARD_NO_PAD};
+use base64::{
+    Engine,
+    engine::{self, general_purpose},
+    prelude::BASE64_STANDARD_NO_PAD,
+};
 use bech32::{Bech32, Hrp};
 use lazy_static::lazy_static;
 use wasm_bindgen::prelude::*;
@@ -59,8 +63,8 @@ pub fn derive_key_pair(password: &str, salt: &str) -> Result<String, JsError> {
 }
 
 #[wasm_bindgen]
-pub fn asym_encrypt(data: &str, public_key: &str) -> Result<Vec<u8>, JsError> {
-    asym_encrypt_bytes(data.as_bytes(), public_key)
+pub fn asym_encrypt(data: &str, public_key: &str) -> Result<String, JsError> {
+    asym_encrypt_bytes(data.as_bytes(), public_key).map(|v| general_purpose::STANDARD.encode(&v))
 }
 
 #[wasm_bindgen]
@@ -70,8 +74,9 @@ pub fn asym_encrypt_bytes(data: &[u8], public_key: &str) -> Result<Vec<u8>, JsEr
 }
 
 #[wasm_bindgen]
-pub fn asym_decrypt(data: &[u8]) -> Result<String, JsError> {
-    let decrypted = asym_decrypt_bytes(data)?;
+pub fn asym_decrypt(data: &str) -> Result<String, JsError> {
+    let bytes_data = general_purpose::STANDARD.decode(data)?;
+    let decrypted = asym_decrypt_bytes(&bytes_data)?;
     String::from_utf8(decrypted).map_err(|e| JsError::new(&e.to_string()))
 }
 

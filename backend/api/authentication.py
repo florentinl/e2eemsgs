@@ -71,5 +71,5 @@ def answer(answer: Challenge, response : Response) -> Challenge:
         # Comparing answers
         if answer.challenge == chall.challenge:
             return chall
-        response.status_code = 418
+        response.status_code = 403
         return chall
