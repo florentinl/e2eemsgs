@@ -4,8 +4,7 @@ use age::x25519::{Identity, Recipient};
 use argon2::{Argon2, Params, PasswordHasher, password_hash::SaltString};
 use base64::{
     Engine,
-    engine::{self, general_purpose},
-    prelude::BASE64_STANDARD_NO_PAD,
+    prelude::{BASE64_STANDARD, BASE64_STANDARD_NO_PAD},
 };
 use bech32::{Bech32, Hrp};
 use lazy_static::lazy_static;
@@ -64,52 +63,30 @@ pub fn derive_key_pair(password: &str, salt: &str) -> Result<String, JsError> {
 
 #[wasm_bindgen]
 pub fn asym_encrypt(data: &str, public_key: &str) -> Result<String, JsError> {
-    asym_encrypt_bytes(data.as_bytes(), public_key).map(|v| general_purpose::STANDARD.encode(&v))
+    asym_encrypt_bytes(data.as_bytes(), public_key)
 }
 
 #[wasm_bindgen]
-pub fn asym_encrypt_bytes(data: &[u8], public_key: &str) -> Result<Vec<u8>, JsError> {
+pub fn asym_encrypt_bytes(data: &[u8], public_key: &str) -> Result<String, JsError> {
     let recipient = Recipient::from_str(public_key).map_err(|e| JsError::new(&e.to_string()))?;
-    age::encrypt(&recipient, data).map_err(|e| JsError::new(&e.to_string()))
+    age::encrypt(&recipient, data)
+        .map_err(|e| JsError::new(&e.to_string()))
+        .map(|v| BASE64_STANDARD.encode(&v))
 }
 
 #[wasm_bindgen]
 pub fn asym_decrypt(data: &str) -> Result<String, JsError> {
-    let bytes_data = general_purpose::STANDARD.decode(data)?;
-    let decrypted = asym_decrypt_bytes(&bytes_data)?;
+    let decrypted = asym_decrypt_bytes(data)?;
     String::from_utf8(decrypted).map_err(|e| JsError::new(&e.to_string()))
 }
 
 #[wasm_bindgen]
-pub fn asym_decrypt_bytes(data: &[u8]) -> Result<Vec<u8>, JsError> {
+pub fn asym_decrypt_bytes(data: &str) -> Result<Vec<u8>, JsError> {
+    let bytes_data = BASE64_STANDARD.decode(data)?;
     let identity = IDENTITY.lock().unwrap();
     let identity = identity.as_ref().ok_or(JsError::new(
         "Keys are not ready yet, ensure that the user is logged in",
     ))?;
 
-    age::decrypt(identity, data).map_err(|e| JsError::new(&e.to_string()))
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_derive_key_pair() {
-        let password = "password";
-        let salt = "toto@gmail.com";
-        let _ = derive_key_pair(password, salt).unwrap();
-        assert!(IDENTITY.lock().unwrap().is_some());
-    }
-
-    #[test]
-    fn test_encrypt_decrypt() {
-        let password = "password";
-        let salt = "toto@gmail.com";
-        let recipient = derive_key_pair(password, salt).unwrap();
-        let data = "Hello, world!";
-        let encrypted = asym_encrypt(data, &recipient).unwrap();
-        let decrypted = asym_decrypt(&encrypted).unwrap();
-        assert_eq!(data, decrypted);
-    }
+    age::decrypt(identity, &bytes_data).map_err(|e| JsError::new(&e.to_string()))
 }

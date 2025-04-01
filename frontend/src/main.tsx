@@ -11,7 +11,6 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import "./styles.css";
 
-import DemoCrypto from "./pages/DemoCrypto.tsx";
 import {
   createTheme,
   CssBaseline,
@@ -33,12 +32,6 @@ const rootRoute = createRootRoute({
   ),
 });
 
-const indexRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/",
-  component: DemoCrypto,
-});
-
 const signUpRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/signup",
@@ -57,7 +50,7 @@ const wsDemoRoute = createRoute({
   component: Chat,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, signUpRoute, loginRoute, wsDemoRoute]);
+const routeTree = rootRoute.addChildren([signUpRoute, loginRoute, wsDemoRoute]);
 
 const router = createRouter({
   routeTree,
