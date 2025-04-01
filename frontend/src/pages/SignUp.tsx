@@ -16,7 +16,7 @@ import { derive_key_pair } from "argon2wasm";
 import InfoBox from "../components/InfoBox";
 
 const SignUp = () => {
-  const { initialized } = useCryptoWasmReady()
+  const { initialized } = useCryptoWasmReady();
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
@@ -24,15 +24,14 @@ const SignUp = () => {
   });
 
   // states used to know what textfields must be set as error, and what error to display
-  const [usernameError,setUsernameError] = useState(false)
-  const [passwordError,setPasswordError] = useState(false)
-  const [confirmPasswordError,setConfirmPasswordError] = useState(false)
+  const [usernameError, setUsernameError] = useState(false);
+  const [passwordError, setPasswordError] = useState(false);
+  const [confirmPasswordError, setConfirmPasswordError] = useState(false);
 
   // states controling whether the info box is shown, and what to show
-  const [showInfo,setShowInfo] = useState(false)
-  const [infoContent,setInfoContent] = useState("")
-  const [isInfoError, setIsInfoError] = useState(false)
-
+  const [showInfo, setShowInfo] = useState(false);
+  const [infoContent, setInfoContent] = useState("");
+  const [isInfoError, setIsInfoError] = useState(false);
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -49,57 +48,63 @@ const SignUp = () => {
     setConfirmPasswordError(!confirmPasswordOk);
 
     if (!confirmPasswordOk) {
-      setShowInfo(true)
-      setIsInfoError(true)
-      setInfoContent("Password and Confirm password must match")
+      setShowInfo(true);
+      setIsInfoError(true);
+      setInfoContent("Password and Confirm password must match");
     }
     if (!passwordOk) {
-      setShowInfo(true)
-      setIsInfoError(true)
-      setInfoContent("Password must not be empty")
+      setShowInfo(true);
+      setIsInfoError(true);
+      setInfoContent("Password must not be empty");
     }
     if (!usernameOk) {
-      setShowInfo(true)
-      setIsInfoError(true)
-      setInfoContent("Username must be 8 characters or longer")
+      setShowInfo(true);
+      setIsInfoError(true);
+      setInfoContent("Username must be 8 characters or longer");
     }
 
     if (usernameOk && passwordOk && confirmPasswordOk) {
-      sendSignUp(credentials.username,credentials.password)
+      sendSignUp(credentials.username, credentials.password);
     }
   };
 
-  const  sendSignUp =  (username: string, password: string) => {
+  const sendSignUp = (username: string, password: string) => {
     if (initialized) {
-      const publicKey = derive_key_pair(password, username)
-    
+      const publicKey = derive_key_pair(password, username);
+
       const requestOptions = {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: username, public_key: publicKey })
-        };
-        console.log("signing up with: ",{ username: username, public_key: publicKey })
-        fetch('/api/auth/signup', requestOptions)
-          .then(response => {
-            if (response.ok) {
-              return response.json();
-            } else if (response.status == 409) {
-              setInfoContent("Username already in use")
-            } else {
-              setInfoContent("Internal server error")
-            }
-            throw new Error("error")
-          }).then(data => {
-            setShowInfo(true)
-            setIsInfoError(false)
-            setInfoContent("Successfully signed up with username " + data.username)})
-          .catch(() => {
-            setShowInfo(true)
-            setIsInfoError(true)
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username: username, public_key: publicKey }),
+      };
+      console.log("signing up with: ", {
+        username: username,
+        public_key: publicKey,
+      });
+      fetch("/api/auth/signup", requestOptions)
+        .then((response) => {
+          if (response.ok) {
+            return response.json();
+          } else if (response.status == 409) {
+            setInfoContent("Username already in use");
+          } else {
+            setInfoContent("Internal server error");
           }
-          )
+          throw new Error("error");
+        })
+        .then((data) => {
+          setShowInfo(true);
+          setIsInfoError(false);
+          setInfoContent(
+            "Successfully signed up with username " + data.username
+          );
+        })
+        .catch(() => {
+          setShowInfo(true);
+          setIsInfoError(true);
+        });
     }
-  }
+  };
 
   return (
     <Box
@@ -147,7 +152,11 @@ const SignUp = () => {
             onChange={handleChange}
             error={confirmPasswordError}
           />
-          <InfoBox show={showInfo} content={infoContent} isError={isInfoError}/>
+          <InfoBox
+            show={showInfo}
+            content={infoContent}
+            isError={isInfoError}
+          />
           <Button
             fullWidth
             variant="contained"
