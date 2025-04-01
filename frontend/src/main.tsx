@@ -22,6 +22,7 @@ import Login from "./pages/Login.tsx";
 import Chat from "./pages/Chat.tsx";
 import { WebSocketProvider } from "./hooks/websockets.tsx";
 import { CryptoWasmProvider } from "./hooks/cryptoWasm.tsx";
+import SignUp from "./pages/SignUp.tsx";
 
 const rootRoute = createRootRoute({
   component: () => (
@@ -38,6 +39,12 @@ const indexRoute = createRoute({
   component: DemoCrypto,
 });
 
+const signUpRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/signup",
+  component: SignUp,
+});
+
 const loginRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/login",
@@ -50,7 +57,7 @@ const wsDemoRoute = createRoute({
   component: Chat,
 });
 
-const routeTree = rootRoute.addChildren([indexRoute, loginRoute, wsDemoRoute]);
+const routeTree = rootRoute.addChildren([indexRoute, signUpRoute, loginRoute, wsDemoRoute]);
 
 const router = createRouter({
   routeTree,

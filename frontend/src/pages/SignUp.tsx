@@ -11,25 +11,28 @@ import {
   type ChangeEventHandler,
   type MouseEventHandler,
 } from "react";
-import InfoBox from "../components/InfoBox";
 import { useCryptoWasmReady } from "../hooks/cryptoWasm";
-import { asym_decrypt, derive_key_pair } from "argon2wasm";
+import { derive_key_pair } from "argon2wasm";
+import InfoBox from "../components/InfoBox";
 
-const Login = () => {
+const SignUp = () => {
   const { initialized } = useCryptoWasmReady()
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
+    confirmPassword: "",
   });
 
   // states used to know what textfields must be set as error, and what error to display
   const [usernameError,setUsernameError] = useState(false)
   const [passwordError,setPasswordError] = useState(false)
+  const [confirmPasswordError,setConfirmPasswordError] = useState(false)
 
   // states controling whether the info box is shown, and what to show
   const [showInfo,setShowInfo] = useState(false)
   const [infoContent,setInfoContent] = useState("")
   const [isInfoError, setIsInfoError] = useState(false)
+
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -39,10 +42,17 @@ const Login = () => {
     e.preventDefault();
     let usernameOk = credentials.username.length >= 8;
     let passwordOk = credentials.password.length > 0;
+    let confirmPasswordOk = credentials.confirmPassword == credentials.password;
 
     setUsernameError(!usernameOk);
     setPasswordError(!passwordOk);
+    setConfirmPasswordError(!confirmPasswordOk);
 
+    if (!confirmPasswordOk) {
+      setShowInfo(true)
+      setIsInfoError(true)
+      setInfoContent("Password and Confirm password must match")
+    }
     if (!passwordOk) {
       setShowInfo(true)
       setIsInfoError(true)
@@ -54,75 +64,42 @@ const Login = () => {
       setInfoContent("Username must be 8 characters or longer")
     }
 
-    if (usernameOk && passwordOk) {
-      console.log("Loging in with credentials: ", credentials)
-      sendLogin(credentials.username,credentials.password)
+    if (usernameOk && passwordOk && confirmPasswordOk) {
+      sendSignUp(credentials.username,credentials.password)
     }
   };
 
-  const  sendLogin =  (username: string, password: string) => {
-      console.log("crypto context initialized: ",initialized)
-      if (initialized) {
-        derive_key_pair(password, username)
-        const challengeRequestOptions = {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: username })
+  const  sendSignUp =  (username: string, password: string) => {
+    if (initialized) {
+      const publicKey = derive_key_pair(password, username)
+    
+      const requestOptions = {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username: username, public_key: publicKey })
         };
-
-        // Request a challenge
-        fetch('/api/auth/login_challenge', challengeRequestOptions)
+        console.log("signing up with: ",{ username: username, public_key: publicKey })
+        fetch('/api/auth/signup', requestOptions)
           .then(response => {
             if (response.ok) {
               return response.json();
+            } else if (response.status == 409) {
+              setInfoContent("Username already in use")
+            } else {
+              setInfoContent("Internal server error")
             }
-            setInfoContent("Internal server error")
             throw new Error("error")
           }).then(data => {
-            let answer = ""
-            // In case of bad password, decryption fails and throws an error that we catch here
-            try {
-              answer = asym_decrypt(data.challenge)
-            } catch (e) {
-              setInfoContent("Wrong username or password")
-              throw new Error("error")
-            }
-            console.log("here")
-            const answerRequestOptions = {
-              method: 'POST',
-              headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({id: data.id, username: data.username, challenge: answer  })
-            };
-            // Send answer to the challenge
-            fetch('/api/auth/login_answer', answerRequestOptions)
-              .then(response => {
-                if (response.ok) {
-                  return response.json();
-                }else if (response.status == 403) {
-                  setInfoContent("Wrong username or password")
-                } else {
-                  setInfoContent("Internal server error")
-                }
-                throw new Error("error")
-              }).then(data => {
-                setShowInfo(true)
-                setIsInfoError(false)
-                setInfoContent("Successfully logged in with username " + data.username)})
-              .catch((e: Error) => {
-                console.log(e)
-                setShowInfo(true)
-                setIsInfoError(true)
-              }
-              )
-          })
-          .catch((e: Error) => {
-            console.log(e)
+            setShowInfo(true)
+            setIsInfoError(false)
+            setInfoContent("Successfully signed up with username " + data.username)})
+          .catch(() => {
             setShowInfo(true)
             setIsInfoError(true)
           }
           )
-      }
     }
+  }
 
   return (
     <Box
@@ -136,7 +113,7 @@ const Login = () => {
       <Card sx={{ m: 4, p: 2 }}>
         <CardContent>
           <Typography variant="h5" align="center" gutterBottom>
-            Login
+            Sign Up
           </Typography>
           <TextField
             fullWidth
@@ -159,6 +136,17 @@ const Login = () => {
             onChange={handleChange}
             error={passwordError}
           />
+          <TextField
+            fullWidth
+            label="Confirm password"
+            name="confirmPassword"
+            type="password"
+            variant="outlined"
+            margin="normal"
+            value={credentials.confirmPassword}
+            onChange={handleChange}
+            error={confirmPasswordError}
+          />
           <InfoBox show={showInfo} content={infoContent} isError={isInfoError}/>
           <Button
             fullWidth
@@ -167,7 +155,7 @@ const Login = () => {
             sx={{ mt: 2 }}
             onClick={handleSubmit}
           >
-            Login
+            Sign Up
           </Button>
         </CardContent>
       </Card>
@@ -175,4 +163,4 @@ const Login = () => {
   );
 };
 
-export default Login;
+export default SignUp;

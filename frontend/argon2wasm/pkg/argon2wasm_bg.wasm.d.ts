@@ -3,9 +3,9 @@
 export const memory: WebAssembly.Memory;
 export const derive_key_pair: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const asym_encrypt: (a: number, b: number, c: number, d: number) => [number, number, number, number];
+export const asym_encrypt_bytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const asym_decrypt: (a: number, b: number) => [number, number, number, number];
 export const asym_decrypt_bytes: (a: number, b: number) => [number, number, number, number];
-export const asym_encrypt_bytes: (a: number, b: number, c: number, d: number) => [number, number, number, number];
 export const generate_sym_key: () => [number, number];
 export const sym_encrypt_bytes: (a: number, b: number, c: number, d: number) => [number, number, number];
 export const sym_encrypt: (a: number, b: number, c: number, d: number) => [number, number, number];
