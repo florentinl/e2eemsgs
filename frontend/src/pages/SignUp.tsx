@@ -110,12 +110,13 @@ const SignUp = () => {
     <Box
       sx={{
         height: "100vh",
+        width: "100%",
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
       }}
     >
-      <Card sx={{ m: 4, p: 2 }}>
+      <Card sx={{ m: 4, p: 2, maxWidth: "50%" }}>
         <CardContent>
           <Typography variant="h5" align="center" gutterBottom>
             Sign Up

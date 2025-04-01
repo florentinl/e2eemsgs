@@ -8,9 +8,10 @@ type InfoBoxProps = {
 
 export default function InfoBox({ show, isError, content }: InfoBoxProps) {
   const severity = isError ? "error" : "success";
-  if (show) {
-    return <Alert severity={severity}>{content}</Alert>;
-  } else {
-    return <></>;
-  }
+
+  return (
+    <Alert severity={severity} sx={{ visibility: show ? "visible" : "hidden" }}>
+      {content}
+    </Alert>
+  );
 }
