@@ -7,8 +7,9 @@
 Requirements:
 
 - Node.js (v23 should work with v20 as well)
-- (optional) Rust (v1.85)
-  - Install with `rustup` and add the `wasm32-unknown-unknown` target with `rustup target add wasm32-unknown-unknown`
+- Rust (v1.85)
+  - Install rust with rustup: `curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh`
+  - Install the `wasm32-unknown-unknown` target with `rustup target add wasm32-unknown-unknown`
   - Install `wasm-pack` with `cargo install wasm-pack`
 
 Run the frontend:
@@ -16,10 +17,9 @@ Run the frontend:
 ```bash
 cd frontend
 
-# (Optional) Compile argon2wasm (a precompiled output is included in the repo to avoid the need for touching Rust)
+# Compile argon2wasm (a precompiled output is included in the repo to avoid the need for touching Rust)
 cd argon2wasm
-wasm-pack build --target web
-cd ..
+npm run argon2wasm # Run on each update to the argon2wasm module
 
 # Install dependencies for the frontend
 npm install
@@ -30,6 +30,8 @@ npm run start
 # Or build it for production
 npm run build
 ```
+
+Beware, frontend types are automatically generated from the backend types on startup. They are not autoreloaded. When you modify a type on the backend, you should restart your frontend.
 
 ### Backend
 
