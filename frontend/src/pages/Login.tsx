@@ -14,6 +14,10 @@ import {
 import InfoBox from "../components/InfoBox";
 import { useCryptoWasmReady } from "../hooks/cryptoWasm";
 import { asym_decrypt, derive_key_pair } from "argon2wasm";
+import {
+  answerApiAuthLoginAnswerPost,
+  challengeApiAuthLoginChallengePost,
+} from "../api-client";
 
 const Login = () => {
   const { initialized } = useCryptoWasmReady();
@@ -31,6 +35,18 @@ const Login = () => {
   const [infoContent, setInfoContent] = useState("");
   const [isInfoError, setIsInfoError] = useState(false);
 
+  const showError = (message: string) => {
+    setIsInfoError(true);
+    setShowInfo(true);
+    setInfoContent(message);
+  };
+
+  const showSuccess = (message: string) => {
+    setIsInfoError(false);
+    setShowInfo(true);
+    setInfoContent(message);
+  };
+
   const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
   };
@@ -44,14 +60,10 @@ const Login = () => {
     setPasswordError(!passwordOk);
 
     if (!passwordOk) {
-      setShowInfo(true);
-      setIsInfoError(true);
-      setInfoContent("Password must not be empty");
+      showError("Password must not be empty");
     }
     if (!usernameOk) {
-      setShowInfo(true);
-      setIsInfoError(true);
-      setInfoContent("Username must be 8 characters or longer");
+      showError("Username must be 8 characters or longer");
     }
 
     if (usernameOk && passwordOk) {
@@ -60,74 +72,64 @@ const Login = () => {
     }
   };
 
-  const sendLogin = (username: string, password: string) => {
+  const sendLogin = async (username: string, password: string) => {
     console.log("crypto context initialized: ", initialized);
     if (initialized) {
       derive_key_pair(password, username);
-      const challengeRequestOptions = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username }),
-      };
+
+      let challengeId: number;
+      let challengeCipher: string;
 
       // Request a challenge
-      fetch("/api/auth/login_challenge", challengeRequestOptions)
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          }
-          setInfoContent("Internal server error");
-          throw new Error("error");
-        })
-        .then((data) => {
-          let answer = "";
-          // In case of bad password, decryption fails and throws an error that we catch here
-          try {
-            answer = asym_decrypt(data.challenge);
-          } catch (e) {
-            setInfoContent("Wrong username or password");
-            throw new Error("error");
-          }
-          console.log("here");
-          const answerRequestOptions = {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              id: data.id,
-              username: data.username,
-              challenge: answer,
-            }),
-          };
-          // Send answer to the challenge
-          fetch("/api/auth/login_answer", answerRequestOptions)
-            .then((response) => {
-              if (response.ok) {
-                return response.json();
-              } else if (response.status == 403) {
-                setInfoContent("Wrong username or password");
-              } else {
-                setInfoContent("Internal server error");
-              }
-              throw new Error("error");
-            })
-            .then((data) => {
-              setShowInfo(true);
-              setIsInfoError(false);
-              setInfoContent(
-                "Successfully logged in with username " + data.username
-              );
-            })
-            .catch((e: Error) => {
-              console.log(e);
-              setShowInfo(true);
-              setIsInfoError(true);
-            });
-        })
-        .catch((e: Error) => {
-          console.log(e);
-          setShowInfo(true);
-          setIsInfoError(true);
+      {
+        let response = await challengeApiAuthLoginChallengePost({
+          body: {
+            username: username,
+          },
         });
+
+        if (response.error) {
+          showError("Internal server error");
+          return;
+        }
+
+        challengeId = response.data.id!;
+        challengeCipher = response.data.challenge;
+      }
+
+      // Resolve the challenge
+      let challengeAnswer: string;
+
+      try {
+        challengeAnswer = asym_decrypt(challengeCipher);
+      } catch {
+        showError("Wrong username or password");
+        return;
+      }
+
+      // Answer a challenge
+      {
+        let response = await answerApiAuthLoginAnswerPost({
+          body: {
+            id: challengeId,
+            username: username,
+            challenge: challengeAnswer,
+          },
+        });
+
+        if (response.error) {
+          if (response.response.status == 403) {
+            showError("Wrong username or password");
+          } else {
+            showError("Internal server error");
+          }
+          return;
+        }
+
+        showSuccess(
+          "Successfully logged in with username " + response.data.username
+        );
+      }
     }
   };
 

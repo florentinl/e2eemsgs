@@ -51,6 +51,7 @@
             python3Packages.venvShellHook
             python3Packages.pip
             ruff
+            sqlite
           ];
         }
       );

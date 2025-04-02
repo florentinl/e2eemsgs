@@ -9,11 +9,12 @@ def create_db_and_tables():
 
 
 class User(SQLModel, table=True):
-    id: int = Field(primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     username: str = Field(min_length=1, unique=True)
     public_key: str = Field(min_length=1)
 
+
 class Challenge(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    username: str = Field(min_length=1)
+    username: str = Field(min_length=8)
     challenge: str = Field()
