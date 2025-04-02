@@ -61,19 +61,13 @@ const SignUp = () => {
     setConfirmPasswordError(!confirmPasswordOk);
 
     if (!confirmPasswordOk) {
-      setShowInfo(true);
-      setIsInfoError(true);
-      setInfoContent("Password and Confirm password must match");
+      showError("Password and Confirm password must match");
     }
     if (!passwordOk) {
-      setShowInfo(true);
-      setIsInfoError(true);
-      setInfoContent("Password must not be empty");
+      showError("Password must not be empty");
     }
     if (!usernameOk) {
-      setShowInfo(true);
-      setIsInfoError(true);
-      setInfoContent("Username must be 8 characters or longer");
+      showError("Username must be 8 characters or longer");
     }
 
     if (usernameOk && passwordOk && confirmPasswordOk) {
