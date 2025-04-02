@@ -22,6 +22,11 @@ import Chat from "./pages/Chat.tsx";
 import { WebSocketProvider } from "./hooks/websockets.tsx";
 import { CryptoWasmProvider } from "./hooks/cryptoWasm.tsx";
 import SignUp from "./pages/SignUp.tsx";
+import { client } from "./api-client/client.gen";
+
+client.setConfig({
+  baseUrl: "/",
+});
 
 const rootRoute = createRootRoute({
   component: () => (

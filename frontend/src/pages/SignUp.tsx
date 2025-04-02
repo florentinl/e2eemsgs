@@ -14,6 +14,7 @@ import {
 import { useCryptoWasmReady } from "../hooks/cryptoWasm";
 import { derive_key_pair } from "argon2wasm";
 import InfoBox from "../components/InfoBox";
+import { signupApiAuthSignupPost } from "../api-client";
 
 const SignUp = () => {
   const { initialized } = useCryptoWasmReady();
@@ -32,6 +33,18 @@ const SignUp = () => {
   const [showInfo, setShowInfo] = useState(false);
   const [infoContent, setInfoContent] = useState("");
   const [isInfoError, setIsInfoError] = useState(false);
+
+  const showError = (message: string) => {
+    setIsInfoError(true);
+    setShowInfo(true);
+    setInfoContent(message);
+  };
+
+  const showSuccess = (message: string) => {
+    setIsInfoError(false);
+    setShowInfo(true);
+    setInfoContent(message);
+  };
 
   const handleChange: ChangeEventHandler<HTMLInputElement> = (e) => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -68,42 +81,32 @@ const SignUp = () => {
     }
   };
 
-  const sendSignUp = (username: string, password: string) => {
-    if (initialized) {
-      const publicKey = derive_key_pair(password, username);
+  const sendSignUp = async (username: string, password: string) => {
+    if (!initialized) {
+      return;
+    }
 
-      const requestOptions = {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username: username, public_key: publicKey }),
-      };
-      console.log("signing up with: ", {
+    const publicKey = derive_key_pair(password, username);
+
+    const response = await signupApiAuthSignupPost({
+      body: {
         username: username,
         public_key: publicKey,
-      });
-      fetch("/api/auth/signup", requestOptions)
-        .then((response) => {
-          if (response.ok) {
-            return response.json();
-          } else if (response.status == 409) {
-            setInfoContent("Username already in use");
-          } else {
-            setInfoContent("Internal server error");
-          }
-          throw new Error("error");
-        })
-        .then((data) => {
-          setShowInfo(true);
-          setIsInfoError(false);
-          setInfoContent(
-            "Successfully signed up with username " + data.username
-          );
-        })
-        .catch(() => {
-          setShowInfo(true);
-          setIsInfoError(true);
-        });
+      },
+    });
+
+    if (response.error) {
+      if (response.response.status == 409) {
+        showError("Username already in use");
+      } else {
+        showError("Internal server error");
+      }
+      return;
     }
+
+    showSuccess(
+      "Successfully signed up with username " + response.data.username
+    );
   };
 
   return (
