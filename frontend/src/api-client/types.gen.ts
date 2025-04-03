@@ -14,6 +14,10 @@ export type ExceptionModel = {
     detail: string;
 };
 
+export type GetUidResponse = {
+    uid: number;
+};
+
 export type HttpValidationError = {
     detail?: Array<ValidationError>;
 };
@@ -112,6 +116,22 @@ export type AnswerApiAuthLoginAnswerPostResponses = {
 };
 
 export type AnswerApiAuthLoginAnswerPostResponse = AnswerApiAuthLoginAnswerPostResponses[keyof AnswerApiAuthLoginAnswerPostResponses];
+
+export type GetUidApiSessionGetUidPostData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/session/get_uid';
+};
+
+export type GetUidApiSessionGetUidPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: GetUidResponse;
+};
+
+export type GetUidApiSessionGetUidPostResponse = GetUidApiSessionGetUidPostResponses[keyof GetUidApiSessionGetUidPostResponses];
 
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
