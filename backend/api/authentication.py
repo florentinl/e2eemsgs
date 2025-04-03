@@ -9,9 +9,11 @@ from pydantic import BaseModel, Field
 from sqlalchemy import exc
 from sqlmodel import Session, select
 
+from api.session import get_jwt
+
 logger = logging.getLogger("uvicorn")
 
-router = APIRouter()
+router = APIRouter(prefix="/auth")
 
 
 def generate_random_string(n: int) -> str:
@@ -41,7 +43,7 @@ class UserAlreadyExists(HTTPException):
         )
 
 
-@router.post("/auth/signup", responses={409: {"model": ExceptionModel}})
+@router.post("/signup", responses={409: {"model": ExceptionModel}})
 def signup(user: User, response: Response) -> User:
     with Session(engine) as session:
         session.add(user)
@@ -53,7 +55,7 @@ def signup(user: User, response: Response) -> User:
         return user
 
 
-@router.post("/auth/login_challenge")
+@router.post("/login_challenge")
 def challenge(req: ChallengeRequest, response: Response) -> Challenge:
     with Session(engine) as session:
         # Getting user key
@@ -70,7 +72,7 @@ def challenge(req: ChallengeRequest, response: Response) -> Challenge:
         return chall
 
 
-@router.post("/auth/login_answer", responses={403: {"model": ExceptionModel}})
+@router.post("/login_answer", responses={403: {"model": ExceptionModel}})
 def answer(answer: Challenge, response: Response) -> User:
     with Session(engine) as session:
         # Getting challenge
@@ -82,6 +84,10 @@ def answer(answer: Challenge, response: Response) -> User:
             user = session.exec(
                 select(User).where(User.username == chall.username)
             ).one()
-            return user
-
+            if user.id is not None:
+                jwt = get_jwt(user.id)
+                response.set_cookie(
+                    key="access_token", value=jwt, httponly=True
+                )  # set HttpOnly cookie in response
+                return user
         raise AuthFailed()

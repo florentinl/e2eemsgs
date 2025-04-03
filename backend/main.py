@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from api import router
+from api.session import AuthMiddleware
 from fastapi import FastAPI
 from models import create_db_and_tables
 
@@ -17,6 +18,7 @@ async def lifespan(_: FastAPI):
 
 app = FastAPI(lifespan=lifespan)
 app.include_router(router)
+app.add_middleware(middleware_class=AuthMiddleware)
 
 
 if __name__ == "__main__":
