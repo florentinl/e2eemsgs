@@ -1,26 +1,10 @@
-import React, {
-  createContext,
-  useContext,
-  useEffect,
-  useRef,
-  useState,
-  type ReactNode,
-} from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Groups, SendMessage } from "../types";
+import { useNavigate } from "@tanstack/react-router";
 
 const WS_URL = `${window.location.protocol === "https:" ? "wss://" : "ws://"}${
   window.location.host
-}/api/ws`;
-
-interface WebSocketContextType {
-  sendMessage: (message: SendMessage) => void;
-  groups: Groups;
-  isConnected: boolean;
-}
-
-const WebSocketContext = createContext<WebSocketContextType | undefined>(
-  undefined
-);
+}/api/ws/`;
 
 const makeMessages = (n: number) => {
   const messages = [];
@@ -52,10 +36,9 @@ const makeGroups: (n: number) => Groups = (n) => {
   return groups;
 };
 
-export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
-  children,
-}) => {
+export const useWebSocket = () => {
   const ws = useRef<WebSocket | null>(null);
+  const navigate = useNavigate();
   const [groups] = useState<Groups>(makeGroups(10));
   const [isConnected, setIsConnected] = useState(false);
 
@@ -78,7 +61,10 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
         console.error("WebSocket error:", error);
       };
 
-      ws.current.onclose = () => {
+      ws.current.onclose = (event) => {
+        if (event.code == 3000) {
+          navigate({ to: "/login" });
+        }
         console.warn("WebSocket closed. Reconnecting...");
         setIsConnected(false);
         setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
@@ -93,7 +79,7 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
   }, []);
 
   // Function to send a message
-  const sendMessage = (message: object) => {
+  const sendMessage = (message: SendMessage) => {
     if (ws.current && ws.current.readyState === WebSocket.OPEN) {
       ws.current.send(JSON.stringify(message));
     } else {
@@ -101,17 +87,5 @@ export const WebSocketProvider: React.FC<{ children: ReactNode }> = ({
     }
   };
 
-  return (
-    <WebSocketContext.Provider value={{ sendMessage, groups, isConnected }}>
-      {children}
-    </WebSocketContext.Provider>
-  );
-};
-
-export const useWebSocket = () => {
-  const context = useContext(WebSocketContext);
-  if (!context) {
-    throw new Error("useWebSocket must be used within a WebSocketProvider");
-  }
-  return context;
+  return { groups, isConnected, sendMessage };
 };

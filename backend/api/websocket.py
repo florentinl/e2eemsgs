@@ -1,8 +1,10 @@
 import logging
 from typing import Literal
 
+import jwt
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
+from api.session import check_cookie
 
 logger = logging.getLogger("uvicorn")
 
@@ -23,6 +25,14 @@ class Message(BaseModel):
 
 @router.websocket("/")
 async def websocket_endpoint(ws: WebSocket):
+    match check_cookie(ws):
+        case int(_):
+            pass
+        case jwt.InvalidTokenError():
+            await ws.accept()
+            await ws.close(code=3000)
+            return
+
     await ws.accept()
     while True:
         try:
