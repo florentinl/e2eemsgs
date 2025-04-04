@@ -23,6 +23,7 @@ import { WebSocketProvider } from "./hooks/websockets.tsx";
 import { CryptoWasmProvider } from "./hooks/cryptoWasm.tsx";
 import SignUp from "./pages/SignUp.tsx";
 import { client } from "./api-client/client.gen";
+import CookieCheck from "./pages/CookieCheck.tsx";
 
 client.setConfig({
   baseUrl: "/",
@@ -55,7 +56,18 @@ const wsDemoRoute = createRoute({
   component: Chat,
 });
 
-const routeTree = rootRoute.addChildren([signUpRoute, loginRoute, wsDemoRoute]);
+const cookieCheckRoute = createRoute({
+  getParentRoute: () => rootRoute,
+  path: "/cookies",
+  component: CookieCheck,
+});
+
+const routeTree = rootRoute.addChildren([
+  signUpRoute,
+  loginRoute,
+  wsDemoRoute,
+  cookieCheckRoute,
+]);
 
 const router = createRouter({
   routeTree,

@@ -1,11 +1,12 @@
+import logging
 from typing import Literal
+
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from pydantic import BaseModel, Field
-import logging
 
 logger = logging.getLogger("uvicorn")
 
-router = APIRouter()
+router = APIRouter(prefix="/ws")
 
 
 class PingMessage(BaseModel):
@@ -20,7 +21,7 @@ class Message(BaseModel):
     msg: PingMessage | PongMessage = Field(discriminator="type")
 
 
-@router.websocket("/ws")
+@router.websocket("/")
 async def websocket_endpoint(ws: WebSocket):
     await ws.accept()
     while True:

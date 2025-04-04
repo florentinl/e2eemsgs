@@ -10,7 +10,7 @@ def create_db_and_tables():
 
 class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
-    username: str = Field(min_length=1, unique=True)
+    username: str = Field(min_length=8, unique=True)
     public_key: str = Field(min_length=1)
 
 
