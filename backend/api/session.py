@@ -6,7 +6,7 @@ from fastapi import APIRouter, Request, Response
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from pydantic import BaseModel
-from starlette.middleware.base import BaseHTTPMiddleware
+from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.types import ASGIApp
 
 JWT_SECRET = "change_me_please"
@@ -21,11 +21,11 @@ def get_jwt(user_id: int) -> str:
         "user_id": user_id,
         "expires": time.time() + TOKEN_EXPIRES,
     }
-    return jwt.encode(payload=payload, key=JWT_SECRET, algorithm=JWT_ALGORITHM)  # type: ignore
+    return jwt.encode(payload=payload, key=JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
 def check_jwt(token: str) -> int:
-    decoded_token = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])  # type: ignore
+    decoded_token = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
     if decoded_token["expires"] >= time.time():
         return decoded_token["user_id"]
     else:
@@ -39,18 +39,20 @@ class AuthMiddleware(BaseHTTPMiddleware):
     ):
         super().__init__(app)
 
-    async def dispatch(self, request: Request, call_next):  # type: ignore
+    async def dispatch(
+        self, request: Request, call_next: RequestResponseEndpoint
+    ) -> Response:
         if not request.url.path.startswith(("/api/session", "/api/ws")):
-            response: JSONResponse = await call_next(request)  # type: ignore
-            return response  # type: ignore
+            response = await call_next(request)
+            return response
         try:
             cookie = request.cookies.get("access_token")
             if cookie is not None:
                 id_token: str = cookie
                 user_id = check_jwt(id_token)
                 request.state.uid = user_id
-                response: JSONResponse = await call_next(request)  # type: ignore
-                return response  # type: ignore
+                response = await call_next(request)
+                return response
             else:
                 return JSONResponse(
                     content=jsonable_encoder({"detail": "No cookie found"}),
