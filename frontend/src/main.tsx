@@ -19,7 +19,6 @@ import {
 } from "@mui/material";
 import Login from "./pages/Login.tsx";
 import Chat from "./pages/Chat.tsx";
-import { WebSocketProvider } from "./hooks/websockets.tsx";
 import { CryptoWasmProvider } from "./hooks/cryptoWasm.tsx";
 import SignUp from "./pages/SignUp.tsx";
 import { client } from "./api-client/client.gen";
@@ -96,16 +95,14 @@ const App = () => {
         },
   });
   return (
-    <StrictMode>
-      <WebSocketProvider>
-        <CryptoWasmProvider>
-          <ThemeProvider theme={theme}>
-            <CssBaseline />
-            <RouterProvider router={router} />
-          </ThemeProvider>
-        </CryptoWasmProvider>
-      </WebSocketProvider>
-    </StrictMode>
+    // <StrictMode>
+    <CryptoWasmProvider>
+      <ThemeProvider theme={theme}>
+        <CssBaseline />
+        <RouterProvider router={router} />
+      </ThemeProvider>
+    </CryptoWasmProvider>
+    // </StrictMode>
   );
 };
 
