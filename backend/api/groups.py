@@ -117,3 +117,15 @@ def handle_get_user_groups(req: Request) -> OwnGroupsResponse:
             )
 
         return OwnGroupsResponse(groups=groups)
+
+
+def is_member(user_id: int, group_id: int) -> bool:
+    with Session(engine) as session:
+        return (
+            session.exec(
+                select(GroupMember).where(
+                    GroupMember.user_id == user_id, GroupMember.group_id == group_id
+                )
+            ).one_or_none()
+            is not None
+        )
