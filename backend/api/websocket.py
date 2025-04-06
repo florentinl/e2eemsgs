@@ -4,12 +4,12 @@ from typing import Literal
 
 import jwt
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from models import Group, Message
 from nats.aio.msg import Msg
 from pydantic import BaseModel, Field
 
 from api.messaging import STREAM_NAME, NATSMultiSubjectConsumer
 from api.session import check_cookie
-from models import Group, Message
 
 logger = logging.getLogger("uvicorn")
 

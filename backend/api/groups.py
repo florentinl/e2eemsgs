@@ -1,6 +1,6 @@
 from typing import List, Literal
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Request
 from models import Group, GroupMember, User, engine
 from pydantic import BaseModel
 from sqlmodel import Session, select
@@ -31,19 +31,20 @@ class OwnGroupsResponse(BaseModel):
 
 
 @groups_router.post("/create")
-def handle_create_group(group_request: CreateGroupMessage, user_id: int) -> Group:
+def handle_create_group(req: Request, data: CreateGroupMessage) -> Group:
     with Session(engine) as session:
+        uid = req.state.uid
         # Generating the group
-        group = Group(name=group_request.name, owner_id=user_id)
+        group = Group(name=data.name, owner_id=uid)
         session.add(group)
         session.commit()
         session.refresh(group)
 
         # Generating the groupmember
         membership = GroupMember(
-            user_id=user_id,
+            user_id=uid,
             group_id=group.id,
-            symmetric_key=group_request.symmetric_key,
+            symmetric_key=data.symmetric_key,
         )
         session.add(membership)
         session.commit()
@@ -65,19 +66,20 @@ def handle_get_user(username: str) -> User:
 
 
 @groups_router.post("/add")
-def handle_add_group_user(req: GroupAddUserRequest) -> GroupMember:
+def handle_add_group_user(req: Request, data: GroupAddUserRequest) -> GroupMember:
     with Session(engine) as session:
+        uid = req.state.uid
         # Getting the group's owner id
-        group = session.exec(select(Group).where(Group.id == req.group_id)).one()
+        group = session.exec(select(Group).where(Group.id == data.group_id)).one()
 
-        if group.owner_id != req.user_id:
+        if group.owner_id != uid:
             raise HTTPException(status_code=403, detail="Forbidden")
 
         # Generating the groupmember
         membership = GroupMember(
-            user_id=req.user_id,
+            user_id=data.user_id,
             group_id=group.id,
-            symmetric_key=req.symmetric_key,
+            symmetric_key=data.symmetric_key,
         )
         session.add(membership)
         session.commit()
@@ -86,11 +88,12 @@ def handle_add_group_user(req: GroupAddUserRequest) -> GroupMember:
         return membership
 
 
-def handle_get_user_groups(user_id: int) -> OwnGroupsResponse:
+def handle_get_user_groups(req: Request) -> OwnGroupsResponse:
     with Session(engine) as session:
+        uid = req.state.uid
         # Getting groups
         group_memberships = session.exec(
-            select(GroupMember).where(GroupMember.user_id == user_id)
+            select(GroupMember).where(GroupMember.user_id == uid)
         ).all()
 
         group_ids = [m.group_id for m in group_memberships]

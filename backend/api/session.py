@@ -52,7 +52,9 @@ class AuthMiddleware(BaseHTTPMiddleware):
     async def dispatch(
         self, request: Request, call_next: RequestResponseEndpoint
     ) -> Response:
-        if not request.url.path.startswith(("/api/session")):
+        if not request.url.path.startswith(
+            ("/api/session", "/api/groups", "/api/users")
+        ):
             response = await call_next(request)
             return response
 
