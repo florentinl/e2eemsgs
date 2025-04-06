@@ -40,8 +40,9 @@ class GroupMember(SQLModel, table=True):
 
 
 class Message(SQLModel, table=True):
-    id: int = Field(default=None, primary_key=True)
+    id: int | None = Field(default=None, primary_key=True)
     content: str
+    nonce: str
     sender_id: int = Field(foreign_key="user.id")
     group_id: int = Field(foreign_key="group.id")
     sender: Optional[User] = Relationship()
