@@ -9,6 +9,13 @@ import LoadingPage from "./LoadingPage";
 import type { Group } from "../types";
 import { useCryptoWasmReady } from "../hooks/cryptoWasm";
 import { asym_encrypt, generate_sym_key } from "argon2wasm";
+import {
+  handleAddGroupUserApiGroupsAddPost,
+  handleCreateGroupApiGroupsCreatePost,
+  handleGetUserApiUsersGet,
+  handleGetUserGroupsApiGroupsPost,
+  type OwnGroupInfo,
+} from "../api-client";
 
 const ChatPage: React.FC<{}> = () => {
   const { sendMessage, isConnected } = useWebSocket();
@@ -19,15 +26,27 @@ const ChatPage: React.FC<{}> = () => {
 
   const fetchGroups = async () => {
     try {
-      const res = await fetch(`/api/groups/me`);
-      if (!res.ok) throw new Error("Failed to fetch groups");
+      const response = await handleGetUserGroupsApiGroupsPost({});
 
-      const data: Group[] = await res.json();
+      if (response.error || !response.data) {
+        console.error("Error while fetching groups");
+        return;
+      } else {
+        const data: OwnGroupInfo[] = response.data.groups;
 
-      const groupMap = new Map<string, Group>();
-      data.forEach((group) => groupMap.set(group.id.toString(), group));
+        const groupMap = new Map<string, Group>();
+        data.forEach((group) =>
+          groupMap.set(group.group_id.toString(), {
+            id: group.group_id.toString(),
+            name: group.group_name,
+            symmetricKey: group.symmetric_key,
+            members: new Set(),
+            messages: [],
+          })
+        );
 
-      setGroups(groupMap);
+        setGroups(groupMap);
+      }
     } catch (err) {
       console.error("Failed to fetch groups", err);
     }
@@ -52,22 +71,76 @@ const ChatPage: React.FC<{}> = () => {
       const symmetricKey = generate_sym_key();
       const ciphered_symKey = asym_encrypt(symmetricKey, publicKey);
       try {
-        const res = await fetch("/api/groups/create", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
+        const response = await handleCreateGroupApiGroupsCreatePost({
+          body: {
             name: groupName,
-            symmetric_key: symmetricKey,
-          }),
+            symmetric_key: ciphered_symKey,
+          },
         });
 
-        if (!res.ok) throw new Error("Error while creating the group");
-        await fetchGroups();
+        if (response.error) {
+          console.error(
+            "Error while creating the group: ",
+            response.error.detail
+          );
+          return;
+        }
       } catch (err) {
         console.error("Error while creating the group", err);
       }
+    }
+  };
+
+  const handleAddUser = async (username: string) => {
+    const currGroupName = groups.get(groupId)?.name || "Select a group";
+    const currSymKey = groups.get(groupId)?.symmetricKey;
+    console.log("Adding user", { username }, "to group ", { currGroupName });
+    try {
+      const userResponse = await handleGetUserApiUsersGet({
+        query: {
+          username: username,
+        },
+      });
+      if (userResponse.error) {
+        if (userResponse.response.status == 404) {
+          console.error("User does not exist");
+          return;
+        } else {
+          console.error("Internal server error");
+          return;
+        }
+      }
+      if (
+        initialized &&
+        currSymKey &&
+        userResponse.data.id &&
+        parseInt(groupId)
+      ) {
+        const ciphered_symKey = asym_encrypt(
+          currSymKey,
+          userResponse.data.public_key
+        );
+
+        const addResponse = await handleAddGroupUserApiGroupsAddPost({
+          body: {
+            user_id: userResponse.data.id,
+            group_id: parseInt(groupId),
+            symmetric_key: ciphered_symKey,
+          },
+        });
+        if (addResponse.error) {
+          if (addResponse.response.status == 403) {
+            console.error("Not allowed to add user");
+            return;
+          } else {
+            console.error("Internal server error");
+            return;
+          }
+        }
+        console.log("Successfully added user");
+      }
+    } catch (err) {
+      console.error("Error while creating the group", err);
     }
   };
 
@@ -104,8 +177,10 @@ const ChatPage: React.FC<{}> = () => {
           <Box sx={{ mx: 2 }}>
             <ChatTopBar
               groupName={groups.get(groupId)?.name || "Select a group"}
+              groupId={groupId}
               onBack={() => {}}
               onSettings={() => {}}
+              onAddUser={handleAddUser}
             />
           </Box>
 
