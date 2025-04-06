@@ -79,7 +79,7 @@ const Login = () => {
   const sendLogin = async (username: string, password: string) => {
     console.log("crypto context initialized: ", initialized);
     if (initialized) {
-      derive_key_pair(password, username);
+      const asymKeys = derive_key_pair(password, username);
 
       let challengeId: number;
       let challengeCipher: string;
@@ -105,7 +105,7 @@ const Login = () => {
       let challengeAnswer: string;
 
       try {
-        challengeAnswer = asym_decrypt(challengeCipher);
+        challengeAnswer = asym_decrypt(challengeCipher, asymKeys.private_key);
       } catch {
         showError("Wrong username or password");
         return;
@@ -131,6 +131,9 @@ const Login = () => {
         }
 
         setDisableButton(true);
+        localStorage.setItem("publicKey", asymKeys.public_key);
+        localStorage.setItem("privateKey", asymKeys.private_key);
+
         showSuccess(
           "Successfully logged in with username " + response.data.username
         );

@@ -47,9 +47,10 @@ const ChatPage: React.FC<{}> = () => {
 
   const handleCreateGroup = async (groupName: string) => {
     console.log("Creation of group:", { groupName });
-    if (initialized) {
+    const publicKey = localStorage.getItem("publicKey");
+    if (initialized && publicKey) {
       const symmetricKey = generate_sym_key();
-      const ciphered_symKey = asym_encrypt();
+      const ciphered_symKey = asym_encrypt(symmetricKey, publicKey);
       try {
         const res = await fetch("/api/groups/create", {
           method: "POST",

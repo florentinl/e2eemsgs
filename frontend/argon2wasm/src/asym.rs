@@ -1,17 +1,21 @@
-use std::{str::FromStr, sync::Mutex};
+use std::str::FromStr;
 
-use age::x25519::{Identity, Recipient};
+use age::{
+    secrecy::ExposeSecret,
+    x25519::{Identity, Recipient},
+};
 use argon2::{Argon2, Params, PasswordHasher, password_hash::SaltString};
 use base64::{
     Engine,
     prelude::{BASE64_STANDARD, BASE64_STANDARD_NO_PAD},
 };
 use bech32::{Bech32, Hrp};
-use lazy_static::lazy_static;
 use wasm_bindgen::prelude::*;
 
-lazy_static! {
-    static ref IDENTITY: Mutex<Option<Identity>> = Mutex::new(None);
+#[wasm_bindgen(getter_with_clone)]
+pub struct AsymKeys {
+    pub public_key: String,
+    pub private_key: String,
 }
 
 #[wasm_bindgen]
@@ -29,7 +33,7 @@ lazy_static! {
 ///
 /// * `Ok(String)` - A Bech32-encoded public key string if key derivation is successful.
 /// * `Err(String)` - An error message if key derivation fails.
-pub fn derive_key_pair(password: &str, salt: &str) -> Result<String, JsError> {
+pub fn derive_key_pair(password: &str, salt: &str) -> Result<AsymKeys, JsError> {
     // Default len is 32 bytes and customizing the params is annoying, so just asserting that the default is what we expect.
     assert_eq!(Params::DEFAULT_OUTPUT_LEN, 32);
 
@@ -54,11 +58,14 @@ pub fn derive_key_pair(password: &str, salt: &str) -> Result<String, JsError> {
     let data =
         bech32::encode::<Bech32>(hrp, data.as_bytes()).map_err(|e| JsError::new(&e.to_string()))?;
 
-    let identity = Identity::from_str(&data).map_err(|e| JsError::new(&e.to_string()))?;
+    let identity = Identity::from_str(&data).map_err(JsError::new)?;
     let recipient = identity.to_public();
-    IDENTITY.lock().unwrap().replace(identity);
+    let secret: String = identity.to_string().expose_secret().to_string();
 
-    Ok(recipient.to_string())
+    Ok(AsymKeys {
+        public_key: recipient.to_string(),
+        private_key: secret,
+    })
 }
 
 #[wasm_bindgen]
@@ -68,25 +75,21 @@ pub fn asym_encrypt(data: &str, public_key: &str) -> Result<String, JsError> {
 
 #[wasm_bindgen]
 pub fn asym_encrypt_bytes(data: &[u8], public_key: &str) -> Result<String, JsError> {
-    let recipient = Recipient::from_str(public_key).map_err(|e| JsError::new(&e.to_string()))?;
+    let recipient = Recipient::from_str(public_key).map_err(JsError::new)?;
     age::encrypt(&recipient, data)
         .map_err(|e| JsError::new(&e.to_string()))
         .map(|v| BASE64_STANDARD.encode(&v))
 }
 
 #[wasm_bindgen]
-pub fn asym_decrypt(data: &str) -> Result<String, JsError> {
-    let decrypted = asym_decrypt_bytes(data)?;
+pub fn asym_decrypt(data: &str, private_key: &str) -> Result<String, JsError> {
+    let decrypted = asym_decrypt_bytes(data, private_key)?;
     String::from_utf8(decrypted).map_err(|e| JsError::new(&e.to_string()))
 }
 
 #[wasm_bindgen]
-pub fn asym_decrypt_bytes(data: &str) -> Result<Vec<u8>, JsError> {
+pub fn asym_decrypt_bytes(data: &str, private_key: &str) -> Result<Vec<u8>, JsError> {
     let bytes_data = BASE64_STANDARD.decode(data)?;
-    let identity = IDENTITY.lock().unwrap();
-    let identity = identity.as_ref().ok_or(JsError::new(
-        "Keys are not ready yet, ensure that the user is logged in",
-    ))?;
-
-    age::decrypt(identity, &bytes_data).map_err(|e| JsError::new(&e.to_string()))
+    let identity = Identity::from_str(private_key).map_err(JsError::new)?;
+    age::decrypt(&identity, &bytes_data).map_err(|e| JsError::new(&e.to_string()))
 }

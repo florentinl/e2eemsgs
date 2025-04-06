@@ -82,12 +82,12 @@ const SignUp = () => {
       return;
     }
 
-    const publicKey = derive_key_pair(password, username);
+    const asymKeys = derive_key_pair(password, username);
 
     const response = await signupApiAuthSignupPost({
       body: {
         username: username,
-        public_key: publicKey,
+        public_key: asymKeys.public_key,
       },
     });
 
@@ -99,6 +99,9 @@ const SignUp = () => {
       }
       return;
     }
+
+    localStorage.setItem("publicKey", asymKeys.public_key);
+    localStorage.setItem("privateKey", asymKeys.private_key);
 
     setTimeout(() => navigate({ to: "/" }), 500);
     showSuccess(
