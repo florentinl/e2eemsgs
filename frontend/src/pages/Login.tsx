@@ -18,6 +18,7 @@ import {
   answerApiAuthLoginAnswerPost,
   challengeApiAuthLoginChallengePost,
 } from "../api-client";
+import { useNavigate } from "@tanstack/react-router";
 
 const Login = () => {
   const { initialized } = useCryptoWasmReady();
@@ -25,6 +26,9 @@ const Login = () => {
     username: "",
     password: "",
   });
+
+  const navigate = useNavigate();
+  const [disableButton, setDisableButton] = useState(false);
 
   // states used to know what textfields must be set as error, and what error to display
   const [usernameError, setUsernameError] = useState(false);
@@ -126,9 +130,11 @@ const Login = () => {
           return;
         }
 
+        setDisableButton(true);
         showSuccess(
           "Successfully logged in with username " + response.data.username
         );
+        setTimeout(() => navigate({ to: "/" }), 500);
       }
     }
   };
@@ -179,6 +185,7 @@ const Login = () => {
             color="primary"
             sx={{ mt: 2 }}
             onClick={handleSubmit}
+            disabled={disableButton}
           >
             Login
           </Button>

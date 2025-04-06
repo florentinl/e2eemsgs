@@ -49,9 +49,9 @@ const loginRoute = createRoute({
   component: Login,
 });
 
-const wsDemoRoute = createRoute({
+const chatRoute = createRoute({
   getParentRoute: () => rootRoute,
-  path: "/chat",
+  path: "/",
   component: Chat,
 });
 
@@ -64,7 +64,7 @@ const cookieCheckRoute = createRoute({
 const routeTree = rootRoute.addChildren([
   signUpRoute,
   loginRoute,
-  wsDemoRoute,
+  chatRoute,
   cookieCheckRoute,
 ]);
 
@@ -95,14 +95,14 @@ const App = () => {
         },
   });
   return (
-    // <StrictMode>
-    <CryptoWasmProvider>
-      <ThemeProvider theme={theme}>
-        <CssBaseline />
-        <RouterProvider router={router} />
-      </ThemeProvider>
-    </CryptoWasmProvider>
-    // </StrictMode>
+    <StrictMode>
+      <CryptoWasmProvider>
+        <ThemeProvider theme={theme}>
+          <CssBaseline />
+          <RouterProvider router={router} />
+        </ThemeProvider>
+      </CryptoWasmProvider>
+    </StrictMode>
   );
 };
 

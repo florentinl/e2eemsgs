@@ -15,9 +15,11 @@ import { useCryptoWasmReady } from "../hooks/cryptoWasm";
 import { derive_key_pair } from "argon2wasm";
 import InfoBox from "../components/InfoBox";
 import { signupApiAuthSignupPost } from "../api-client";
+import { useNavigate } from "@tanstack/react-router";
 
 const SignUp = () => {
   const { initialized } = useCryptoWasmReady();
+  const navigate = useNavigate();
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
@@ -98,6 +100,7 @@ const SignUp = () => {
       return;
     }
 
+    setTimeout(() => navigate({ to: "/" }), 500);
     showSuccess(
       "Successfully signed up with username " + response.data.username
     );
