@@ -1,10 +1,11 @@
 import logging
 from random import choice
 from string import ascii_letters, digits
+from typing import List
 
 from agepy import asym_encrypt
 from fastapi import APIRouter, HTTPException, Response
-from models import Challenge, User, engine
+from models import Challenge, Group, GroupMember, User, engine
 from pydantic import BaseModel, Field
 from sqlalchemy import exc
 from sqlmodel import Session, select
@@ -27,6 +28,12 @@ class ChallengeRequest(BaseModel):
 
 class ExceptionModel(BaseModel):
     detail: str = Field()
+
+
+class CreateGroupRequest(BaseModel):
+    username: str
+    name: str
+    symmetric_key: str
 
 
 class AuthFailed(HTTPException):
@@ -91,3 +98,57 @@ def answer(answer: Challenge, response: Response) -> User:
                 )  # set HttpOnly cookie in response
                 return user
         raise AuthFailed()
+
+
+@router.get("/groups/me", response_model=List[Group])
+def get_user_groups(username: str):
+    with Session(engine) as session:
+        # Getting user
+        user = session.exec(select(User).where(User.username == username)).one()
+
+        if not user or user.id is None:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Getting groups
+        group_memberships = session.exec(
+            select(GroupMember).where(GroupMember.user_id == user.id)
+        ).all()
+
+        group_ids = [m.group_id for m in group_memberships]
+
+        # groups = session.exec(select(Group).where(Group.id in (group_ids))).all()
+        groups: List[Group] = []
+        for gid in group_ids:
+            group = session.exec(select(Group).where(Group.id == gid)).one()
+            groups.append(group)
+
+        return groups
+
+
+@router.post("/groups/create", responses={409: {"model": ExceptionModel}})
+def create_group(group_request: CreateGroupRequest, response: Response) -> Group:
+    with Session(engine) as session:
+        # Getting user
+        user = session.exec(
+            select(User).where(User.username == group_request.username)
+        ).one()
+
+        if not user or user.id is None:
+            raise HTTPException(status_code=404, detail="User not found")
+
+        # Generating the group
+        group = Group(
+            name=group_request.name,
+            symmetric_key=group_request.symmetric_key,
+        )
+        session.add(group)
+        session.commit()
+        session.refresh(group)
+
+        # Generating the groupmember
+        membership = GroupMember(user_id=user.id, group_id=group.id)
+        session.add(membership)
+        session.commit()
+        session.refresh(membership)
+
+        return group
