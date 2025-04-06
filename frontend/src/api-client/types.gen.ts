@@ -10,12 +10,36 @@ export type ChallengeRequest = {
     username: string;
 };
 
+export type CreateGroupMessage = {
+    type: 'createGroup';
+    name: string;
+    symmetric_key: string;
+};
+
 export type ExceptionModel = {
     detail: string;
 };
 
 export type GetUidResponse = {
     uid: number;
+};
+
+export type Group = {
+    id?: number;
+    name: string;
+    owner_id: number;
+};
+
+export type GroupAddUserRequest = {
+    user_id: number;
+    symmetric_key: string;
+    group_id: number;
+};
+
+export type GroupMember = {
+    user_id: number;
+    group_id: number;
+    symmetric_key: string;
 };
 
 export type HttpValidationError = {
@@ -117,6 +141,58 @@ export type AnswerApiAuthLoginAnswerPostResponses = {
 
 export type AnswerApiAuthLoginAnswerPostResponse = AnswerApiAuthLoginAnswerPostResponses[keyof AnswerApiAuthLoginAnswerPostResponses];
 
+export type HandleCreateGroupApiGroupsCreatePostData = {
+    body: CreateGroupMessage;
+    path?: never;
+    query: {
+        user_id: number;
+    };
+    url: '/api/groups/create';
+};
+
+export type HandleCreateGroupApiGroupsCreatePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type HandleCreateGroupApiGroupsCreatePostError = HandleCreateGroupApiGroupsCreatePostErrors[keyof HandleCreateGroupApiGroupsCreatePostErrors];
+
+export type HandleCreateGroupApiGroupsCreatePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: Group;
+};
+
+export type HandleCreateGroupApiGroupsCreatePostResponse = HandleCreateGroupApiGroupsCreatePostResponses[keyof HandleCreateGroupApiGroupsCreatePostResponses];
+
+export type HandleAddGroupUserApiGroupsAddPostData = {
+    body: GroupAddUserRequest;
+    path?: never;
+    query?: never;
+    url: '/api/groups/add';
+};
+
+export type HandleAddGroupUserApiGroupsAddPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type HandleAddGroupUserApiGroupsAddPostError = HandleAddGroupUserApiGroupsAddPostErrors[keyof HandleAddGroupUserApiGroupsAddPostErrors];
+
+export type HandleAddGroupUserApiGroupsAddPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupMember;
+};
+
+export type HandleAddGroupUserApiGroupsAddPostResponse = HandleAddGroupUserApiGroupsAddPostResponses[keyof HandleAddGroupUserApiGroupsAddPostResponses];
+
 export type GetUidApiSessionGetUidPostData = {
     body?: never;
     path?: never;
@@ -132,6 +208,33 @@ export type GetUidApiSessionGetUidPostResponses = {
 };
 
 export type GetUidApiSessionGetUidPostResponse = GetUidApiSessionGetUidPostResponses[keyof GetUidApiSessionGetUidPostResponses];
+
+export type HandleGetUserApiUsersGetData = {
+    body?: never;
+    path?: never;
+    query: {
+        username: string;
+    };
+    url: '/api/users/';
+};
+
+export type HandleGetUserApiUsersGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type HandleGetUserApiUsersGetError = HandleGetUserApiUsersGetErrors[keyof HandleGetUserApiUsersGetErrors];
+
+export type HandleGetUserApiUsersGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: User;
+};
+
+export type HandleGetUserApiUsersGetResponse = HandleGetUserApiUsersGetResponses[keyof HandleGetUserApiUsersGetResponses];
 
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});

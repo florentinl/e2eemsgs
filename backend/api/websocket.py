@@ -1,4 +1,6 @@
+import json
 import logging
+from typing import Literal
 
 import jwt
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
@@ -7,26 +9,34 @@ from pydantic import BaseModel, Field
 
 from api.messaging import STREAM_NAME, NATSMultiSubjectConsumer
 from api.session import check_cookie
-from backend.api.groups import (
-    AddGroupUserMessage,
-    CreateGroupMessage,
-    GetUserGroupsMessage,
-    GetUserMessage,
-    handle_add_group_user,
-    handle_create_group,
-    handle_get_user,
-    handle_get_user_groups,
-)
+from models import Group, Message
 
 logger = logging.getLogger("uvicorn")
 
 router = APIRouter(prefix="/ws")
 
 
-class Message(BaseModel):
-    msg: (
-        GetUserGroupsMessage | CreateGroupMessage | GetUserMessage | AddGroupUserMessage
-    ) = Field(discriminator="type")
+class GroupMessageMessage(BaseModel):
+    type: Literal["groupMessage"] = Field(default="groupMessage")
+    message: Message
+
+
+class GroupMessageAcknowledgement(BaseModel):
+    type: Literal["groupMessageAcknowledgement"] = Field(
+        default="groupMessageAcknowledgement"
+    )
+    message: Message
+
+
+class JoinedGroupMessage(BaseModel):
+    type: Literal["joinedGroup"] = Field(default="joinedGroup")
+    group: Group
+
+
+class WsMessage(BaseModel):
+    msg: GroupMessageMessage | JoinedGroupMessage | GroupMessageAcknowledgement = Field(
+        discriminator="type"
+    )
 
 
 @router.websocket("/")
@@ -46,11 +56,10 @@ async def websocket_endpoint(ws: WebSocket):
         try:
             data = await ws.receive_json()
             try:
-                msg = Message(msg=data)
+                msg = WsMessage(msg=data)
                 logger.info(f"Received message: {msg} from user {user_id}")
 
-                response = dispatch_message(msg, user_id)
-                await ws.send_json(response.model_dump_json())
+                dispatch_message(msg, user_id)
             except ValueError as e:
                 logger.error(f"Invalid message: {e}")
         except WebSocketDisconnect as e:
@@ -60,24 +69,36 @@ async def websocket_endpoint(ws: WebSocket):
     await consumer.cleanup()
 
 
-def dispatch_message(msg: Message, user_id: int):
+def dispatch_message(msg: WsMessage, user_id: int):
+    # Here we handle message received on the websocket:
     match msg.msg:
-        case CreateGroupMessage():
-            return handle_create_group(msg.msg, user_id)
-        case GetUserMessage():
-            return handle_get_user(msg.msg)
-        case AddGroupUserMessage():
-            return handle_add_group_user(msg.msg, user_id)
-        case GetUserGroupsMessage():
-            return handle_get_user_groups(user_id)
-        case _:
-            # If pydantic works correctly, this should never happen
-            raise ValueError(f"Unhandled message type: {msg.msg.type}")
+        case GroupMessageMessage():
+            pass
+        case GroupMessageAcknowledgement():
+            pass
+        case JoinedGroupMessage():
+            pass
 
 
-async def message_handler(msg: Msg):
-    # Here we handle messages received from nats:
-    logger.info("%s received msg %s", msg.subject, str(msg.data))
+def message_handler_builder(ws: WebSocket):
+    async def message_handler(msg: Msg):
+        # Here we handle messages received from nats:
+        try:
+            wsmsg = WsMessage(msg=json.loads(msg.data))
+            logger.info("%s received msg %s", msg.subject, str(msg.data))
+        except ValueError as e:
+            logger.error("Invalid message: %s", str(e))
+            return
+
+        match wsmsg.msg:
+            case GroupMessageMessage():
+                pass
+            case GroupMessageAcknowledgement():
+                pass
+            case JoinedGroupMessage():
+                pass
+
+    return message_handler
 
 
 async def setup_consumer(uid: int, ws: WebSocket) -> NATSMultiSubjectConsumer:
@@ -87,6 +108,6 @@ async def setup_consumer(uid: int, ws: WebSocket) -> NATSMultiSubjectConsumer:
     subjects.append(f"chat.users.{uid}")  # Personal subject for system messages
 
     consumer = NATSMultiSubjectConsumer()
-    await consumer.init(subjects, ws, message_handler)
+    await consumer.init(subjects, message_handler_builder(ws))
 
     return consumer
