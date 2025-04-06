@@ -56,12 +56,18 @@ async def websocket_endpoint(ws: WebSocket):
     await consumer.cleanup()
 
 
-def message_handler_builder(ws: WebSocket):
+def message_handler_builder(ws: WebSocket, consumer: NATSMultiSubjectConsumer):
     async def message_handler(msg: Msg):
         # Here we handle messages received from nats:
         try:
             wsmsg = NatsNotifications(msg=json.loads(msg.data))
             logger.info("%s received msg %s", msg.subject, str(msg.data))
+
+            match wsmsg.msg:
+                case JoinGroupNotification(group=group):
+                    await consumer.add_subject(f"{STREAM_NAME}.groups.{group.name}")
+                case MessageNotification():
+                    pass
 
             await ws.send_json(json.dumps(wsmsg))
         except ValueError as e:
@@ -78,6 +84,6 @@ async def setup_consumer(uid: int, ws: WebSocket) -> NATSMultiSubjectConsumer:
     subjects.append(f"chat.users.{uid}")  # Personal subject for system messages
 
     consumer = NATSMultiSubjectConsumer()
-    await consumer.init(subjects, message_handler_builder(ws))
+    await consumer.init(subjects, message_handler_builder(ws, consumer))
 
     return consumer
