@@ -26,7 +26,7 @@ class Challenge(SQLModel, table=True):
 class Group(SQLModel, table=True):
     id: int = Field(default=None, primary_key=True)
     name: str = Field(min_length=1)
-    symmetric_key: str
+    owner_id: int = Field(foreign_key="user.id")
     members: List["GroupMember"] = Relationship(back_populates="group")
     messages: List["Message"] = Relationship(back_populates="group")
 
@@ -34,6 +34,7 @@ class Group(SQLModel, table=True):
 class GroupMember(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", primary_key=True)
     group_id: int = Field(foreign_key="group.id", primary_key=True)
+    symmetric_key: str
     user: Optional[User] = Relationship(back_populates="groups")
     group: Optional[Group] = Relationship(back_populates="members")
 
