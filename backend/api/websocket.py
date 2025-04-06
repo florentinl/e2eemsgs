@@ -1,10 +1,11 @@
 import logging
-from typing import Literal
 
 import jwt
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
+from nats.aio.msg import Msg
 from pydantic import BaseModel, Field
 
+from api.messaging import STREAM_NAME, NATSMultiSubjectConsumer
 from api.session import check_cookie
 from backend.api.groups import (
     AddGroupUserMessage,
@@ -22,22 +23,9 @@ logger = logging.getLogger("uvicorn")
 router = APIRouter(prefix="/ws")
 
 
-class PingMessage(BaseModel):
-    type: Literal["ping"]
-
-
-class PongMessage(BaseModel):
-    type: Literal["pong"]
-
-
 class Message(BaseModel):
     msg: (
-        PingMessage
-        | PongMessage
-        | GetUserGroupsMessage
-        | CreateGroupMessage
-        | GetUserMessage
-        | AddGroupUserMessage
+        GetUserGroupsMessage | CreateGroupMessage | GetUserMessage | AddGroupUserMessage
     ) = Field(discriminator="type")
 
 
@@ -52,6 +40,8 @@ async def websocket_endpoint(ws: WebSocket):
             return
 
     await ws.accept()
+    consumer = await setup_consumer(user_id, ws)
+
     while True:
         try:
             data = await ws.receive_json()
@@ -67,13 +57,11 @@ async def websocket_endpoint(ws: WebSocket):
             logger.info("Client disconnected, code: %s, reason: %s", e.code, e.reason)
             break
 
+    await consumer.cleanup()
+
 
 def dispatch_message(msg: Message, user_id: int):
     match msg.msg:
-        case PingMessage():
-            return handle_ping_message(msg.msg)
-        case PongMessage():
-            return handle_pong_message(msg.msg)
         case CreateGroupMessage():
             return handle_create_group(msg.msg, user_id)
         case GetUserMessage():
@@ -87,9 +75,18 @@ def dispatch_message(msg: Message, user_id: int):
             raise ValueError(f"Unhandled message type: {msg.msg.type}")
 
 
-def handle_ping_message(msg: PingMessage):
-    return PongMessage(type="pong")
+async def message_handler(msg: Msg):
+    # Here we handle messages received from nats:
+    logger.info("%s received msg %s", msg.subject, str(msg.data))
 
 
-def handle_pong_message(msg: PongMessage):
-    return PingMessage(type="ping")
+async def setup_consumer(uid: int, ws: WebSocket) -> NATSMultiSubjectConsumer:
+    # Get the followed groups from the database instead:
+    groups = ["group1", "group2"]
+    subjects = list(map(lambda g: f"{STREAM_NAME}.groups.{g}", groups))
+    subjects.append(f"chat.users.{uid}")  # Personal subject for system messages
+
+    consumer = NATSMultiSubjectConsumer()
+    await consumer.init(subjects, ws, message_handler)
+
+    return consumer
