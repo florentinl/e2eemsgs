@@ -2,7 +2,6 @@ import logging
 from typing import Awaitable, Callable
 
 import nats
-from fastapi import WebSocket
 from nats.aio.msg import Msg
 from nats.js.api import (
     ConsumerConfig,
@@ -25,11 +24,9 @@ class NATSMultiSubjectConsumer:
     async def init(
         self,
         subjects: list[str],
-        ws: WebSocket,
         handler: Callable[[Msg], Awaitable[None]],
     ):
         self.js = await get_js()
-        self.ws = ws
 
         identifier = generate_random_string(30)
         config = ConsumerConfig(

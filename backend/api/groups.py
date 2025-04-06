@@ -1,9 +1,12 @@
 from typing import List, Literal
 
-from fastapi import HTTPException
+from fastapi import APIRouter, HTTPException
 from models import Group, GroupMember, User, engine
 from pydantic import BaseModel
 from sqlmodel import Session, select
+
+groups_router = APIRouter(prefix="/groups")
+users_router = APIRouter(prefix="/users")
 
 
 class CreateGroupMessage(BaseModel):
@@ -17,21 +20,17 @@ class GetUserMessage(BaseModel):
     username: str
 
 
-class AddGroupUserMessage(BaseModel):
-    type: Literal["addGroupUser"]
-    user_id: str
+class GroupAddUserRequest(BaseModel):
+    user_id: int
     symmetric_key: str
     group_id: int
 
 
-class GetUserGroupsMessage(BaseModel):
-    type: Literal["getUserGroupsMessage"]
-
-
-class GetUserGroupsResponse(BaseModel):
+class OwnGroupsResponse(BaseModel):
     groups: List[Group]
 
 
+@groups_router.post("/create")
 def handle_create_group(group_request: CreateGroupMessage, user_id: int) -> Group:
     with Session(engine) as session:
         # Generating the group
@@ -53,12 +52,11 @@ def handle_create_group(group_request: CreateGroupMessage, user_id: int) -> Grou
         return group
 
 
-def handle_get_user(get_user_request: GetUserMessage) -> User:
+@users_router.get("/")
+def handle_get_user(username: str) -> User:
     with Session(engine) as session:
         # Getting new user's info
-        user = session.exec(
-            select(User).where(User.username == get_user_request.username)
-        ).one()
+        user = session.exec(select(User).where(User.username == username)).one()
 
         if not user or user.id is None:
             raise HTTPException(status_code=404, detail="User not found")
@@ -66,23 +64,20 @@ def handle_get_user(get_user_request: GetUserMessage) -> User:
         return user
 
 
-def handle_add_group_user(
-    group_request: AddGroupUserMessage, user_id: int
-) -> GroupMember:
+@groups_router.post("/add")
+def handle_add_group_user(req: GroupAddUserRequest) -> GroupMember:
     with Session(engine) as session:
         # Getting the group's owner id
-        group = session.exec(
-            select(Group).where(Group.id == group_request.group_id)
-        ).one()
+        group = session.exec(select(Group).where(Group.id == req.group_id)).one()
 
-        if group.owner_id != user_id:
+        if group.owner_id != req.user_id:
             raise HTTPException(status_code=403, detail="Forbidden")
 
         # Generating the groupmember
         membership = GroupMember(
-            user_id=user_id,
+            user_id=req.user_id,
             group_id=group.id,
-            symmetric_key=group_request.symmetric_key,
+            symmetric_key=req.symmetric_key,
         )
         session.add(membership)
         session.commit()
@@ -91,7 +86,7 @@ def handle_add_group_user(
         return membership
 
 
-def handle_get_user_groups(user_id: int) -> GetUserGroupsResponse:
+def handle_get_user_groups(user_id: int) -> OwnGroupsResponse:
     with Session(engine) as session:
         # Getting groups
         group_memberships = session.exec(
@@ -106,4 +101,4 @@ def handle_get_user_groups(user_id: int) -> GetUserGroupsResponse:
             group = session.exec(select(Group).where(Group.id == gid)).one()
             groups.append(group)
 
-        return GetUserGroupsResponse(groups=groups)
+        return OwnGroupsResponse(groups=groups)
