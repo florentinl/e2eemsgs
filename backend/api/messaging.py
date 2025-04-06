@@ -27,21 +27,36 @@ class NATSMultiSubjectConsumer:
         handler: Callable[[Msg], Awaitable[None]],
     ):
         self.js = await get_js()
+        self.subjects = set(subjects)
+        self.handler = handler
 
+        await self._create_or_update_consumer()
+        await self._subscribe()
+
+    async def _create_or_update_consumer(self):
         identifier = generate_random_string(30)
         config = ConsumerConfig(
             durable_name=identifier,
-            filter_subjects=subjects,
+            filter_subjects=list(self.subjects),
             deliver_subject=identifier,
         )
         self.ci = await self.js.add_consumer(stream=STREAM_NAME, config=config)  # type: ignore
-        logger.info("CREATING CONSUMER: %s", self.ci.name)
+
+    async def _subscribe(self):
         self.sub = await self.js.subscribe_bind(
             stream=STREAM_NAME,
             config=self.ci.config,
             consumer=self.ci.name,
-            cb=handler,
+            cb=self.handler,
         )
+
+    async def add_subject(self, sub: str):
+        self.subjects.add(sub)
+        await self._create_or_update_consumer()
+
+    async def remove_subject(self, sub: str):
+        self.subjects.remove(sub)
+        await self._create_or_update_consumer()
 
     async def cleanup(self):
         logger.info("CLEANING UP")

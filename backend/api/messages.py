@@ -1,6 +1,6 @@
 import logging
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter, HTTPException, Request
 from models import Message, engine
 from pydantic import BaseModel
 from sqlmodel import Session
@@ -30,6 +30,9 @@ async def send_message(
 
     if not is_member(user_id, message_request.group_id):
         logger.warning(f"{user_id} is trying to send messages outside of his groups")
+        raise HTTPException(
+            status_code=403, detail="Sent message to a group, you do not belong to"
+        )
 
     message = Message(
         content=message_request.content,
