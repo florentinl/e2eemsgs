@@ -52,6 +52,8 @@
             python3Packages.pip
             ruff
             sqlite
+
+            natscli
           ];
         }
       );

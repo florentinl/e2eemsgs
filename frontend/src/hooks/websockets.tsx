@@ -65,12 +65,9 @@ export const useWebSocket = () => {
         if (event.code == 3000) {
           navigate({ to: "/login" });
         }
-        console.warn("WebSocket closed. Reconnecting...");
         setIsConnected(false);
-        setTimeout(connectWebSocket, 3000); // Reconnect after 3 seconds
       };
     };
-
     connectWebSocket();
 
     return () => {
