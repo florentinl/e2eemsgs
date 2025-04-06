@@ -39,6 +39,7 @@ const meta: Meta<typeof GroupTab> = {
   args: {
     groups: makeGroups(10),
     onSelect: () => {},
+    onCreateGroup: () => {},
   },
 };
 

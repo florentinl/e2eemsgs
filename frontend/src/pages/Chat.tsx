@@ -7,18 +7,19 @@ import MessageDisplay from "../components/Message";
 import { useWebSocket } from "../hooks/websockets";
 import LoadingPage from "./LoadingPage";
 import type { Group } from "../types";
+import { useCryptoWasmReady } from "../hooks/cryptoWasm";
+import { asym_encrypt, generate_sym_key } from "argon2wasm";
 
 const ChatPage: React.FC<{}> = () => {
   const { sendMessage, isConnected } = useWebSocket();
+  const { initialized } = useCryptoWasmReady();
   const [groups, setGroups] = useState<Map<string, Group>>(new Map());
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<string>("");
 
-  const username = "alicebob"; // -> get username of currently authenticated user
-
   const fetchGroups = async () => {
     try {
-      const res = await fetch(`/api/groups/me?username=${username}`);
+      const res = await fetch(`/api/groups/me`);
       if (!res.ok) throw new Error("Failed to fetch groups");
 
       const data: Group[] = await res.json();
@@ -44,28 +45,28 @@ const ChatPage: React.FC<{}> = () => {
     if (group) setGroupId(group[0]);
   };
 
-  const handleCreateGroup = async (groupId: string, groupName: string) => {
-    console.log("Creation of group:", { groupId, groupName });
+  const handleCreateGroup = async (groupName: string) => {
+    console.log("Creation of group:", { groupName });
+    if (initialized) {
+      const symmetricKey = generate_sym_key();
+      const ciphered_symKey = asym_encrypt();
+      try {
+        const res = await fetch("/api/groups/create", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            name: groupName,
+            symmetric_key: symmetricKey,
+          }),
+        });
 
-    const symmetricKey = "here-is-a-key";
-
-    try {
-      const res = await fetch("/api/groups/create", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          username,
-          name: groupName,
-          symmetric_key: symmetricKey,
-        }),
-      });
-
-      if (!res.ok) throw new Error("Error while creating the group");
-      await fetchGroups();
-    } catch (err) {
-      console.error("Error while creating the group", err);
+        if (!res.ok) throw new Error("Error while creating the group");
+        await fetchGroups();
+      } catch (err) {
+        console.error("Error while creating the group", err);
+      }
     }
   };
 

@@ -7,8 +7,9 @@ use serde::{Deserialize, Serialize};
 use wasm_bindgen::prelude::*;
 
 #[wasm_bindgen]
-pub fn generate_sym_key() -> Vec<u8> {
-    Aes256Gcm::generate_key(OsRng).iter().cloned().collect()
+pub fn generate_sym_key() -> String {
+    let key: Vec<u8> = Aes256Gcm::generate_key(OsRng).iter().cloned().collect();
+    BASE64_STANDARD.encode(key)
 }
 
 #[wasm_bindgen(typescript_custom_section)]
