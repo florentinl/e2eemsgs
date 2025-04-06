@@ -1,0 +1,6 @@
+services:
+  nats:
+    image: nats
+    command: [-p, "4444", -js]
+    ports:
+      - 4444:4444

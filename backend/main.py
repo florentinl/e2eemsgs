@@ -2,6 +2,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from api import router
+from api.messaging import create_stream
 from api.session import AuthMiddleware
 from fastapi import FastAPI
 from models import create_db_and_tables
@@ -13,6 +14,7 @@ logger = logging.getLogger("uvicorn")
 async def lifespan(_: FastAPI):
     logger.info("Creating database and tables...")
     create_db_and_tables()
+    await create_stream()
     yield
 
 

@@ -44,6 +44,9 @@ Requirements:
 Run the backend:
 
 ```bash
+# Start required services
+docker compose up -d
+
 cd backend
 
 # Create and enter virtual env
