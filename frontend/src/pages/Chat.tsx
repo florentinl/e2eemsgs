@@ -1,20 +1,40 @@
 import { Box } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChatTopBar from "../components/ChatTopBar";
 import GroupSidebar from "../components/GroupSideBar";
 import MessageInput from "../components/MessageInput";
 import MessageDisplay from "../components/Message";
 import { useWebSocket } from "../hooks/websockets";
 import LoadingPage from "./LoadingPage";
-import type { User, Group } from "../types";
+import type { Group } from "../types";
 
 const ChatPage: React.FC<{}> = () => {
-  const { groups, sendMessage, isConnected } = useWebSocket();
+  const { sendMessage, isConnected } = useWebSocket();
+  const [groups, setGroups] = useState<Map<string, Group>>(new Map());
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<string>("");
 
-  // Local states of groups
-  const [localGroups, setLocalGroups] = useState(groups);
+  const username = "alicebob"; // -> get username of currently authenticated user
+
+  const fetchGroups = async () => {
+    try {
+      const res = await fetch(`/api/groups/me?username=${username}`);
+      if (!res.ok) throw new Error("Failed to fetch groups");
+
+      const data: Group[] = await res.json();
+
+      const groupMap = new Map<string, Group>();
+      data.forEach((group) => groupMap.set(group.id.toString(), group));
+
+      setGroups(groupMap);
+    } catch (err) {
+      console.error("Failed to fetch groups", err);
+    }
+  };
+
+  useEffect(() => {
+    fetchGroups();
+  }, []);
 
   const handleSelectGroup = (groupId: string) => {
     setSelectedGroupId(groupId);
@@ -29,17 +49,24 @@ const ChatPage: React.FC<{}> = () => {
 
     const symmetricKey = "here-is-a-key";
 
-    const newGroup: Group = {
-      id: groupId,
-      name: groupName,
-      symmetricKey: symmetricKey,
-      members: new Set<User>(),
-      messages: [],
-    };
+    try {
+      const res = await fetch("/api/groups/create", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          name: groupName,
+          symmetric_key: symmetricKey,
+        }),
+      });
 
-    const updatedGroups = new Map(localGroups);
-    updatedGroups.set(groupId, newGroup);
-    setLocalGroups(updatedGroups);
+      if (!res.ok) throw new Error("Error while creating the group");
+      await fetchGroups();
+    } catch (err) {
+      console.error("Error while creating the group", err);
+    }
   };
 
   const handleSendMessage = (message: string) => {
@@ -55,7 +82,7 @@ const ChatPage: React.FC<{}> = () => {
     <Box sx={{ display: "flex", flexDirection: "row", height: "100vh" }}>
       {/* Sidebar */}
       <GroupSidebar
-        groups={localGroups}
+        groups={groups}
         onSelect={handleSelectGroup}
         onCreateGroup={handleCreateGroup}
       />
