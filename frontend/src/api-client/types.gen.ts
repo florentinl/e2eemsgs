@@ -10,8 +10,7 @@ export type ChallengeRequest = {
     username: string;
 };
 
-export type CreateGroupMessage = {
-    type: 'createGroup';
+export type CreateGroupRequest = {
     name: string;
     symmetric_key: string;
 };
@@ -44,6 +43,16 @@ export type GroupMember = {
 
 export type HttpValidationError = {
     detail?: Array<ValidationError>;
+};
+
+export type OwnGroupInfo = {
+    group_id: number;
+    group_name: string;
+    symmetric_key: string;
+};
+
+export type OwnGroupsResponse = {
+    groups: Array<OwnGroupInfo>;
 };
 
 export type User = {
@@ -142,11 +151,9 @@ export type AnswerApiAuthLoginAnswerPostResponses = {
 export type AnswerApiAuthLoginAnswerPostResponse = AnswerApiAuthLoginAnswerPostResponses[keyof AnswerApiAuthLoginAnswerPostResponses];
 
 export type HandleCreateGroupApiGroupsCreatePostData = {
-    body: CreateGroupMessage;
+    body: CreateGroupRequest;
     path?: never;
-    query: {
-        user_id: number;
-    };
+    query?: never;
     url: '/api/groups/create';
 };
 
@@ -192,6 +199,22 @@ export type HandleAddGroupUserApiGroupsAddPostResponses = {
 };
 
 export type HandleAddGroupUserApiGroupsAddPostResponse = HandleAddGroupUserApiGroupsAddPostResponses[keyof HandleAddGroupUserApiGroupsAddPostResponses];
+
+export type HandleGetUserGroupsApiGroupsPostData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/groups/';
+};
+
+export type HandleGetUserGroupsApiGroupsPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: OwnGroupsResponse;
+};
+
+export type HandleGetUserGroupsApiGroupsPostResponse = HandleGetUserGroupsApiGroupsPostResponses[keyof HandleGetUserGroupsApiGroupsPostResponses];
 
 export type GetUidApiSessionGetUidPostData = {
     body?: never;

@@ -9,8 +9,7 @@ groups_router = APIRouter(prefix="/groups")
 users_router = APIRouter(prefix="/users")
 
 
-class CreateGroupMessage(BaseModel):
-    type: Literal["createGroup"]
+class CreateGroupRequest(BaseModel):
     name: str
     symmetric_key: str
 
@@ -26,12 +25,18 @@ class GroupAddUserRequest(BaseModel):
     group_id: int
 
 
+class OwnGroupInfo(BaseModel):
+    group_id: int
+    group_name: str
+    symmetric_key: str
+
+
 class OwnGroupsResponse(BaseModel):
-    groups: List[Group]
+    groups: List[OwnGroupInfo]
 
 
 @groups_router.post("/create")
-def handle_create_group(req: Request, data: CreateGroupMessage) -> Group:
+def handle_create_group(req: Request, data: CreateGroupRequest) -> Group:
     with Session(engine) as session:
         uid = req.state.uid
         # Generating the group
@@ -88,6 +93,7 @@ def handle_add_group_user(req: Request, data: GroupAddUserRequest) -> GroupMembe
         return membership
 
 
+@groups_router.post("/")
 def handle_get_user_groups(req: Request) -> OwnGroupsResponse:
     with Session(engine) as session:
         uid = req.state.uid
@@ -96,12 +102,18 @@ def handle_get_user_groups(req: Request) -> OwnGroupsResponse:
             select(GroupMember).where(GroupMember.user_id == uid)
         ).all()
 
-        group_ids = [m.group_id for m in group_memberships]
-
         # groups = session.exec(select(Group).where(Group.id in (group_ids))).all()
-        groups: List[Group] = []
-        for gid in group_ids:
-            group = session.exec(select(Group).where(Group.id == gid)).one()
-            groups.append(group)
+        groups: List[OwnGroupInfo] = []
+        for membership in group_memberships:
+            group = session.exec(
+                select(Group).where(Group.id == membership.group_id)
+            ).one()
+            groups.append(
+                OwnGroupInfo(
+                    group_id=membership.group_id,
+                    group_name=group.name,
+                    symmetric_key=membership.symmetric_key,
+                )
+            )
 
         return OwnGroupsResponse(groups=groups)
