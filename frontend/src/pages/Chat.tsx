@@ -6,11 +6,15 @@ import MessageInput from "../components/MessageInput";
 import MessageDisplay from "../components/Message";
 import { useWebSocket } from "../hooks/websockets";
 import LoadingPage from "./LoadingPage";
+import type { User, Group } from "../types";
 
 const ChatPage: React.FC<{}> = () => {
   const { groups, sendMessage, isConnected } = useWebSocket();
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<string>("");
+
+  // Local states of groups
+  const [localGroups, setLocalGroups] = useState(groups);
 
   const handleSelectGroup = (groupId: string) => {
     setSelectedGroupId(groupId);
@@ -18,6 +22,24 @@ const ChatPage: React.FC<{}> = () => {
       ([_, g]) => g.id === groupId
     );
     if (group) setGroupId(group[0]);
+  };
+
+  const handleCreateGroup = async (groupId: string, groupName: string) => {
+    console.log("Creation of group:", { groupId, groupName });
+
+    const symmetricKey = "here-is-a-key";
+
+    const newGroup: Group = {
+      id: groupId,
+      name: groupName,
+      symmetricKey: symmetricKey,
+      members: new Set<User>(),
+      messages: [],
+    };
+
+    const updatedGroups = new Map(localGroups);
+    updatedGroups.set(groupId, newGroup);
+    setLocalGroups(updatedGroups);
   };
 
   const handleSendMessage = (message: string) => {
@@ -32,7 +54,11 @@ const ChatPage: React.FC<{}> = () => {
   ) : (
     <Box sx={{ display: "flex", flexDirection: "row", height: "100vh" }}>
       {/* Sidebar */}
-      <GroupSidebar groups={groups} onSelect={handleSelectGroup} />
+      <GroupSidebar
+        groups={localGroups}
+        onSelect={handleSelectGroup}
+        onCreateGroup={handleCreateGroup}
+      />
       {/* Main Layout */}
       {!selectedGroupId ? (
         <Box></Box>
