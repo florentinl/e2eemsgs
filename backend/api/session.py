@@ -1,6 +1,6 @@
-from typing import Any
 import logging
-from datetime import datetime, timezone, timedelta
+from datetime import datetime, timedelta, timezone
+from typing import Any
 
 import jwt
 from fastapi import APIRouter, Request, Response, WebSocket
@@ -23,7 +23,7 @@ def get_jwt(user_id: int) -> str:
         "user_id": user_id,
         "exp": datetime.now(timezone.utc) + TOKEN_EXPIRES,
     }
-    return jwt.encode(payload=payload, key=JWT_SECRET, algorithm=JWT_ALGORITHM)
+    return jwt.encode(payload=payload, key=JWT_SECRET, algorithm=JWT_ALGORITHM)  # type: ignore
 
 
 def check_cookie(request: Request | WebSocket) -> int | jwt.InvalidTokenError:
@@ -36,7 +36,7 @@ def check_cookie(request: Request | WebSocket) -> int | jwt.InvalidTokenError:
 
 def check_jwt(token: str) -> int | jwt.InvalidTokenError:
     try:
-        decoded_token = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])
+        decoded_token = jwt.decode(token, JWT_SECRET, algorithms=[JWT_ALGORITHM])  # type: ignore
         return decoded_token["user_id"]
     except jwt.InvalidTokenError as e:
         return e
