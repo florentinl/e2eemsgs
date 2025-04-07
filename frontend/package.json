@@ -4,13 +4,14 @@
   "type": "module",
   "scripts": {
     "start": "npm run openapi && vite --port 3000",
-    "build": "npm run openapi && vite build && tsc",
+    "build": "vite build && tsc",
     "serve": "npm run openapi && vite preview",
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "argon2wasm": "cd argon2wasm && wasm-pack build --target web",
     "openapi-spec": "python3 ../backend/main.py --openapi",
-    "openapi": "npm run openapi-spec && openapi-ts"
+    "openapi": "npm run openapi-spec && openapi-ts",
+    "openapi-codegen": "openapi-ts"
   },
   "dependencies": {
     "@emotion/react": "^11.14.0",

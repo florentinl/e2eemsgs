@@ -1,0 +1,17 @@
+services:
+  nats:
+    image: nats
+    command: [-p, "4444", -js]
+
+  backend:
+    build: .
+    ports:
+      - 8000:8000
+    environment:
+      - DATABASE_URL=sqlite:////db/database.sqlite3
+      - JWT_SECRET=a_very_random_and_unguessable_secret
+    volumes:
+      - database:/db
+
+volumes:
+  database:
