@@ -24,26 +24,28 @@ export const useWebSocket = () => {
       .then(() => {
         fetchMessages().then((messages) => {
           if (!messages) return;
+          setGroups((groups) => {
+            const newGroups = new Map(groups);
+            for (const message of messages) {
+              const group = newGroups.get(message.message.group_id);
+              if (!group) continue;
 
-          const newGroups = new Map(groups);
-          for (const message of messages) {
-            const group = newGroups.get(message.message.group_id);
-            if (!group) continue;
+              const decrypted = sym_decrypt(
+                {
+                  nonce: message.message.nonce,
+                  message: message.message.content,
+                },
+                group.symmetricKey
+              );
 
-            const decrypted = sym_decrypt(
-              {
-                nonce: message.message.nonce,
-                message: message.message.content,
-              },
-              group.symmetricKey
-            );
-
-            group.messages.set(message.message.id!, {
-              id: message.message.id!,
-              sender_name: message.sender_name,
-              content: decrypted,
-            });
-          }
+              group.messages.set(message.message.id!, {
+                id: message.message.id!,
+                sender_name: message.sender_name,
+                content: decrypted,
+              });
+            }
+            return newGroups;
+          });
         });
       });
 
