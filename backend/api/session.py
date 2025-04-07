@@ -3,16 +3,15 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import jwt
+from config import JWT_SECRET
 from fastapi import APIRouter, HTTPException, Request, Response, WebSocket
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
+from models import User, engine
 from sqlmodel import Session, select
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.types import ASGIApp
 
-from models import User, engine
-
-JWT_SECRET = "change_me_please"
 JWT_ALGORITHM = "HS256"
 TOKEN_EXPIRES = timedelta(days=1)
 
