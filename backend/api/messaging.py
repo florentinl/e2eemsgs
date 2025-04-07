@@ -2,6 +2,7 @@ import logging
 from typing import Awaitable, Callable
 
 import nats
+from config import NATS_URL
 from nats.aio.msg import Msg
 from nats.js.api import (
     ConsumerConfig,
@@ -14,7 +15,6 @@ from nats.js.errors import BadRequestError
 
 from api.authentication import generate_random_string
 
-NATS_URL = "nats://localhost:4444"
 STREAM_NAME = "chat"
 
 logger = logging.getLogger("uvicorn")
