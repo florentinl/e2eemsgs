@@ -11,14 +11,12 @@ import {
   type ChangeEventHandler,
   type MouseEventHandler,
 } from "react";
-import { useCryptoWasmReady } from "../hooks/cryptoWasm";
 import { derive_key_pair } from "argon2wasm";
 import InfoBox from "../components/InfoBox";
 import { signupApiAuthSignupPost } from "../api-client";
 import { useNavigate } from "@tanstack/react-router";
 
 const SignUp = () => {
-  const { initialized } = useCryptoWasmReady();
   const navigate = useNavigate();
   const [credentials, setCredentials] = useState({
     username: "",
@@ -78,10 +76,6 @@ const SignUp = () => {
   };
 
   const sendSignUp = async (username: string, password: string) => {
-    if (!initialized) {
-      return;
-    }
-
     const asymKeys = derive_key_pair(password, username);
 
     const response = await signupApiAuthSignupPost({

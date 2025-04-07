@@ -7,27 +7,27 @@ import {
   Typography,
 } from "@mui/material";
 import {
+  useEffect,
   useState,
   type ChangeEventHandler,
   type MouseEventHandler,
 } from "react";
 import InfoBox from "../components/InfoBox";
-import { useCryptoWasmReady } from "../hooks/cryptoWasm";
 import { asym_decrypt, derive_key_pair } from "argon2wasm";
 import {
   answerApiAuthLoginAnswerPost,
   challengeApiAuthLoginChallengePost,
+  whoamiApiSessionWhoamiGet,
 } from "../api-client";
 import { useNavigate } from "@tanstack/react-router";
 
 const Login = () => {
-  const { initialized } = useCryptoWasmReady();
+  const navigate = useNavigate();
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
   });
 
-  const navigate = useNavigate();
   const [disableButton, setDisableButton] = useState(false);
 
   // states used to know what textfields must be set as error, and what error to display
@@ -38,6 +38,14 @@ const Login = () => {
   const [showInfo, setShowInfo] = useState(false);
   const [infoContent, setInfoContent] = useState("");
   const [isInfoError, setIsInfoError] = useState(false);
+
+  useEffect(() => {
+    whoamiApiSessionWhoamiGet().then(({ data }) => {
+      if (data) {
+        navigate({ to: "/" });
+      }
+    });
+  });
 
   const showError = (message: string) => {
     setIsInfoError(true);
@@ -77,68 +85,65 @@ const Login = () => {
   };
 
   const sendLogin = async (username: string, password: string) => {
-    console.log("crypto context initialized: ", initialized);
-    if (initialized) {
-      const asymKeys = derive_key_pair(password, username);
+    const asymKeys = derive_key_pair(password, username);
 
-      let challengeId: number;
-      let challengeCipher: string;
+    let challengeId: number;
+    let challengeCipher: string;
 
-      // Request a challenge
-      {
-        let response = await challengeApiAuthLoginChallengePost({
-          body: {
-            username: username,
-          },
-        });
+    // Request a challenge
+    {
+      let response = await challengeApiAuthLoginChallengePost({
+        body: {
+          username: username,
+        },
+      });
 
-        if (response.error) {
-          showError("Internal server error");
-          return;
-        }
-
-        challengeId = response.data.id!;
-        challengeCipher = response.data.challenge;
-      }
-
-      // Resolve the challenge
-      let challengeAnswer: string;
-
-      try {
-        challengeAnswer = asym_decrypt(challengeCipher, asymKeys.private_key);
-      } catch {
-        showError("Wrong username or password");
+      if (response.error) {
+        showError("Internal server error");
         return;
       }
 
-      // Answer a challenge
-      {
-        let response = await answerApiAuthLoginAnswerPost({
-          body: {
-            id: challengeId,
-            username: username,
-            challenge: challengeAnswer,
-          },
-        });
+      challengeId = response.data.id!;
+      challengeCipher = response.data.challenge;
+    }
 
-        if (response.error) {
-          if (response.response.status == 403) {
-            showError("Wrong username or password");
-          } else {
-            showError("Internal server error");
-          }
-          return;
+    // Resolve the challenge
+    let challengeAnswer: string;
+
+    try {
+      challengeAnswer = asym_decrypt(challengeCipher, asymKeys.private_key);
+    } catch {
+      showError("Wrong username or password");
+      return;
+    }
+
+    // Answer a challenge
+    {
+      let response = await answerApiAuthLoginAnswerPost({
+        body: {
+          id: challengeId,
+          username: username,
+          challenge: challengeAnswer,
+        },
+      });
+
+      if (response.error) {
+        if (response.response.status == 403) {
+          showError("Wrong username or password");
+        } else {
+          showError("Internal server error");
         }
-
-        setDisableButton(true);
-        localStorage.setItem("publicKey", asymKeys.public_key);
-        localStorage.setItem("privateKey", asymKeys.private_key);
-
-        showSuccess(
-          "Successfully logged in with username " + response.data.username
-        );
-        setTimeout(() => navigate({ to: "/" }), 500);
+        return;
       }
+
+      setDisableButton(true);
+      localStorage.setItem("publicKey", asymKeys.public_key);
+      localStorage.setItem("privateKey", asymKeys.private_key);
+
+      showSuccess(
+        "Successfully logged in with username " + response.data.username
+      );
+      setTimeout(() => navigate({ to: "/" }), 500);
     }
   };
 
