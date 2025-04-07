@@ -55,6 +55,12 @@ export type Message = {
     group_id: number;
 };
 
+export type MessageNotification = {
+    type?: 'messageNotification';
+    message: Message;
+    sender_name: string;
+};
+
 export type OwnGroupInfo = {
     group_id: number;
     group_name: string;
@@ -225,6 +231,22 @@ export type HandleGetUserGroupsApiGroupsGetResponses = {
 };
 
 export type HandleGetUserGroupsApiGroupsGetResponse = HandleGetUserGroupsApiGroupsGetResponses[keyof HandleGetUserGroupsApiGroupsGetResponses];
+
+export type GetGroupMessagesApiMessagesGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/messages/';
+};
+
+export type GetGroupMessagesApiMessagesGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: Array<MessageNotification>;
+};
+
+export type GetGroupMessagesApiMessagesGetResponse = GetGroupMessagesApiMessagesGetResponses[keyof GetGroupMessagesApiMessagesGetResponses];
 
 export type SendMessageApiMessagesPostData = {
     body: GroupMessageRequest;
