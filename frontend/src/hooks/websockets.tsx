@@ -1,48 +1,24 @@
 import { useEffect, useRef, useState } from "react";
-import type { Groups, SendMessage } from "../types";
+import type { Groups, Notification, SendMessage } from "../types";
 import { useNavigate } from "@tanstack/react-router";
+import { fetchGroups } from "../lib/groups";
 
 const WS_URL = `${window.location.protocol === "https:" ? "wss://" : "ws://"}${
   window.location.host
 }/api/ws/`;
 
-const makeMessages = (n: number) => {
-  const messages = [];
-  for (let i = 0; i < n; i++) {
-    messages.push({
-      id: i.toString(),
-      sender: {
-        id: i.toString(),
-        username: `User ${i}`,
-        publickey: `PublicKey ${i}`,
-      },
-      content: `Message ${i}`,
-    });
-  }
-  return messages;
-};
-
-const makeGroups: (n: number) => Groups = (n) => {
-  const groups: Groups = new Map();
-  for (let i = 1; i <= n; i++) {
-    groups.set(i.toString(), {
-      name: `Group ${i}`,
-      id: i.toString(),
-      symmetricKey: "",
-      members: new Set(),
-      messages: makeMessages(20),
-    });
-  }
-  return groups;
-};
-
 export const useWebSocket = () => {
   const ws = useRef<WebSocket | null>(null);
   const navigate = useNavigate();
-  const [groups] = useState<Groups>(makeGroups(10));
+  const [groups, setGroups] = useState<Groups>(new Map());
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
+    // Initialize group state
+    fetchGroups().then((groupMap) => {
+      if (groupMap) setGroups(groupMap);
+    });
+
     // Function to create a WebSocket connection
     const connectWebSocket = () => {
       ws.current = new WebSocket(WS_URL);
@@ -53,8 +29,13 @@ export const useWebSocket = () => {
       };
 
       ws.current.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        console.log("Received message:", data);
+        const notification = JSON.parse(event.data) as Notification;
+        if (notification.type == "joinedGroupNotification") {
+          console.log("Received message:", notification);
+          fetchGroups().then((groupMap) => {
+            if (groupMap) setGroups(groupMap);
+          });
+        }
       };
 
       ws.current.onerror = (error) => {
@@ -84,5 +65,5 @@ export const useWebSocket = () => {
     }
   };
 
-  return { groups, isConnected, sendMessage };
+  return { groups, setGroups, isConnected, sendMessage };
 };

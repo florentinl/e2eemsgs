@@ -214,21 +214,21 @@ export type HandleAddGroupUserApiGroupsAddPostResponses = {
 
 export type HandleAddGroupUserApiGroupsAddPostResponse = HandleAddGroupUserApiGroupsAddPostResponses[keyof HandleAddGroupUserApiGroupsAddPostResponses];
 
-export type HandleGetUserGroupsApiGroupsPostData = {
+export type HandleGetUserGroupsApiGroupsGetData = {
     body?: never;
     path?: never;
     query?: never;
     url: '/api/groups/';
 };
 
-export type HandleGetUserGroupsApiGroupsPostResponses = {
+export type HandleGetUserGroupsApiGroupsGetResponses = {
     /**
      * Successful Response
      */
     200: OwnGroupsResponse;
 };
 
-export type HandleGetUserGroupsApiGroupsPostResponse = HandleGetUserGroupsApiGroupsPostResponses[keyof HandleGetUserGroupsApiGroupsPostResponses];
+export type HandleGetUserGroupsApiGroupsGetResponse = HandleGetUserGroupsApiGroupsGetResponses[keyof HandleGetUserGroupsApiGroupsGetResponses];
 
 export type SendMessageApiMessagesPostData = {
     body: GroupMessageRequest;
