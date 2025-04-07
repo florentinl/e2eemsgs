@@ -29,16 +29,16 @@ class NATSMultiSubjectConsumer:
         self.js = await get_js()
         self.subjects = set(subjects)
         self.handler = handler
+        self.identifier = generate_random_string(30)
 
         await self._create_or_update_consumer()
         await self._subscribe()
 
     async def _create_or_update_consumer(self):
-        identifier = generate_random_string(30)
         config = ConsumerConfig(
-            durable_name=identifier,
+            durable_name=self.identifier,
             filter_subjects=list(self.subjects),
-            deliver_subject=identifier,
+            deliver_subject=self.identifier,
         )
         self.ci = await self.js.add_consumer(stream=STREAM_NAME, config=config)  # type: ignore
 
@@ -51,10 +51,14 @@ class NATSMultiSubjectConsumer:
         )
 
     async def add_subject(self, sub: str):
+        if sub in self.subjects:
+            return
         self.subjects.add(sub)
         await self._create_or_update_consumer()
 
     async def remove_subject(self, sub: str):
+        if sub not in self.subjects:
+            return
         self.subjects.remove(sub)
         await self._create_or_update_consumer()
 
