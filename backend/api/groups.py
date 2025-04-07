@@ -105,6 +105,7 @@ async def handle_add_group_user(req: Request, data: GroupAddUserRequest) -> Grou
         session.add(membership)
         session.commit()
         session.refresh(membership)
+        session.refresh(group)
 
         # Send notification to the user that he joined the group
         js = await get_js()
