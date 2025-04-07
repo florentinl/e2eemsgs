@@ -19,10 +19,6 @@ export type ExceptionModel = {
     detail: string;
 };
 
-export type GetUidResponse = {
-    uid: number;
-};
-
 export type Group = {
     id?: number;
     name: string;
@@ -255,21 +251,21 @@ export type SendMessageApiMessagesPostResponses = {
 
 export type SendMessageApiMessagesPostResponse = SendMessageApiMessagesPostResponses[keyof SendMessageApiMessagesPostResponses];
 
-export type GetUidApiSessionGetUidPostData = {
+export type WhoamiApiSessionWhoamiGetData = {
     body?: never;
     path?: never;
     query?: never;
-    url: '/api/session/get_uid';
+    url: '/api/session/whoami';
 };
 
-export type GetUidApiSessionGetUidPostResponses = {
+export type WhoamiApiSessionWhoamiGetResponses = {
     /**
      * Successful Response
      */
-    200: GetUidResponse;
+    200: User;
 };
 
-export type GetUidApiSessionGetUidPostResponse = GetUidApiSessionGetUidPostResponses[keyof GetUidApiSessionGetUidPostResponses];
+export type WhoamiApiSessionWhoamiGetResponse = WhoamiApiSessionWhoamiGetResponses[keyof WhoamiApiSessionWhoamiGetResponses];
 
 export type HandleGetUserApiUsersGetData = {
     body?: never;

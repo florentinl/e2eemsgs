@@ -3,12 +3,14 @@ from datetime import datetime, timedelta, timezone
 from typing import Any
 
 import jwt
-from fastapi import APIRouter, Request, Response, WebSocket
+from fastapi import APIRouter, HTTPException, Request, Response, WebSocket
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel
+from sqlmodel import Session, select
 from starlette.middleware.base import BaseHTTPMiddleware, RequestResponseEndpoint
 from starlette.types import ASGIApp
+
+from models import User, engine
 
 JWT_SECRET = "change_me_please"
 JWT_ALGORITHM = "HS256"
@@ -69,11 +71,14 @@ class AuthMiddleware(BaseHTTPMiddleware):
                 )
 
 
-class GetUidResponse(BaseModel):
-    uid: int
-
-
-@router.post("/get_uid")
-def get_uid(req: Request, response: Response) -> GetUidResponse:
+@router.get("/whoami")
+def whoami(req: Request, response: Response) -> User:
     uid = req.state.uid
-    return GetUidResponse(uid=uid)
+
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.id == uid)).one_or_none()
+
+    if user is None:
+        raise HTTPException(status_code=403, detail="Wrong authentication credentials")
+
+    return user

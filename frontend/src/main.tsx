@@ -19,10 +19,9 @@ import {
 } from "@mui/material";
 import Login from "./pages/Login.tsx";
 import Chat from "./pages/Chat.tsx";
-import { CryptoWasmProvider } from "./hooks/cryptoWasm.tsx";
+import { CryptoWasmWrapper } from "./components/cryptoWasm.tsx";
 import SignUp from "./pages/SignUp.tsx";
 import { client } from "./api-client/client.gen";
-import CookieCheck from "./pages/CookieCheck.tsx";
 
 client.setConfig({
   baseUrl: "/",
@@ -55,18 +54,7 @@ const chatRoute = createRoute({
   component: Chat,
 });
 
-const cookieCheckRoute = createRoute({
-  getParentRoute: () => rootRoute,
-  path: "/cookies",
-  component: CookieCheck,
-});
-
-const routeTree = rootRoute.addChildren([
-  signUpRoute,
-  loginRoute,
-  chatRoute,
-  cookieCheckRoute,
-]);
+const routeTree = rootRoute.addChildren([signUpRoute, loginRoute, chatRoute]);
 
 const router = createRouter({
   routeTree,
@@ -96,12 +84,12 @@ const App = () => {
   });
   return (
     <StrictMode>
-      <CryptoWasmProvider>
+      <CryptoWasmWrapper>
         <ThemeProvider theme={theme}>
           <CssBaseline />
           <RouterProvider router={router} />
         </ThemeProvider>
-      </CryptoWasmProvider>
+      </CryptoWasmWrapper>
     </StrictMode>
   );
 };
