@@ -3,6 +3,7 @@ import type { Groups, Notification, Message } from "../types";
 import { useNavigate } from "@tanstack/react-router";
 import { fetchGroups } from "../lib/groups";
 import { sym_decrypt } from "argon2wasm";
+import { fetchMessages } from "../lib/messages";
 
 const WS_URL = `${window.location.protocol === "https:" ? "wss://" : "ws://"}${
   window.location.host
@@ -16,9 +17,35 @@ export const useWebSocket = () => {
 
   useEffect(() => {
     // Initialize group state
-    fetchGroups().then((groupMap) => {
-      if (groupMap) setGroups(groupMap);
-    });
+    fetchGroups()
+      .then((groupMap) => {
+        if (groupMap) setGroups(groupMap);
+      })
+      .then(() => {
+        fetchMessages().then((messages) => {
+          if (!messages) return;
+
+          const newGroups = new Map(groups);
+          for (const message of messages) {
+            const group = newGroups.get(message.message.group_id);
+            if (!group) continue;
+
+            const decrypted = sym_decrypt(
+              {
+                nonce: message.message.nonce,
+                message: message.message.content,
+              },
+              group.symmetricKey
+            );
+
+            group.messages.set(message.message.id!, {
+              id: message.message.id!,
+              sender_name: message.sender_name,
+              content: decrypted,
+            });
+          }
+        });
+      });
 
     // Function to create a WebSocket connection
     const connectWebSocket = () => {

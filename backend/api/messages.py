@@ -1,11 +1,10 @@
 import logging
 
-from fastapi import APIRouter, HTTPException, Request
+from fastapi import APIRouter, Request
 from models import Message, User, engine
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
-from api.groups import is_member
 from api.messaging import STREAM_NAME, get_js
 from api.websocket import MessageNotification
 
@@ -27,12 +26,6 @@ async def send_message(
     js = await get_js()
 
     user_id: int = request.state.uid
-
-    if not is_member(user_id, message_request.group_id):
-        logger.warning(f"{user_id} is trying to send messages outside of his groups")
-        raise HTTPException(
-            status_code=403, detail="Sent message to a group, you do not belong to"
-        )
 
     message = Message(
         content=message_request.content,
@@ -61,3 +54,24 @@ async def send_message(
     )
 
     return message
+
+
+@router.get("/")
+async def get_group_messages(request: Request) -> list[MessageNotification]:
+    user_id: int = request.state.uid
+
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.id == user_id)).one()
+        messages: list[MessageNotification] = []
+        for group in user.groups:
+            if group.group is not None:
+                messages.extend(
+                    map(
+                        lambda m: MessageNotification(
+                            message=m,
+                            sender_name=m.sender.username,  # type: ignore
+                        ),
+                        group.group.messages,
+                    )
+                )
+    return messages
