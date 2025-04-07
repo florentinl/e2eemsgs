@@ -14,13 +14,9 @@ import {
   type MouseEventHandler,
 } from "react";
 import InfoBox from "../components/InfoBox";
-import { asym_decrypt, derive_key_pair } from "argon2wasm";
-import {
-  answerApiAuthLoginAnswerPost,
-  challengeApiAuthLoginChallengePost,
-  whoamiApiSessionWhoamiGet,
-} from "../api-client";
+import { whoamiApiSessionWhoamiGet } from "../api-client";
 import { useNavigate } from "@tanstack/react-router";
+import { sendLogin } from "../lib/auth";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -64,7 +60,13 @@ const Login = () => {
     setCredentials({ ...credentials, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit: MouseEventHandler<HTMLButtonElement> = (e) => {
+  const onLoginSuccess = (msg: string) => {
+    showSuccess(msg);
+    setDisableButton(true);
+    setTimeout(() => navigate({ to: "/" }), 500);
+  };
+
+  const handleSubmit: MouseEventHandler<HTMLButtonElement> = async (e) => {
     e.preventDefault();
     let usernameOk = credentials.username.length >= 8;
     let passwordOk = credentials.password.length > 0;
@@ -81,70 +83,12 @@ const Login = () => {
 
     if (usernameOk && passwordOk) {
       console.log("Loging in with credentials: ", credentials);
-      sendLogin(credentials.username, credentials.password);
-    }
-  };
-
-  const sendLogin = async (username: string, password: string) => {
-    const asymKeys = derive_key_pair(password, username);
-
-    let challengeId: number;
-    let challengeCipher: string;
-
-    // Request a challenge
-    {
-      let response = await challengeApiAuthLoginChallengePost({
-        body: {
-          username: username,
-        },
-      });
-
-      if (response.error) {
-        showError("Internal server error");
-        return;
-      }
-
-      challengeId = response.data.id!;
-      challengeCipher = response.data.challenge;
-    }
-
-    // Resolve the challenge
-    let challengeAnswer: string;
-
-    try {
-      challengeAnswer = asym_decrypt(challengeCipher, asymKeys.private_key);
-    } catch {
-      showError("Wrong username or password");
-      return;
-    }
-
-    // Answer a challenge
-    {
-      let response = await answerApiAuthLoginAnswerPost({
-        body: {
-          id: challengeId,
-          username: username,
-          challenge: challengeAnswer,
-        },
-      });
-
-      if (response.error) {
-        if (response.response.status == 403) {
-          showError("Wrong username or password");
-        } else {
-          showError("Internal server error");
-        }
-        return;
-      }
-
-      setDisableButton(true);
-      localStorage.setItem("publicKey", asymKeys.public_key);
-      localStorage.setItem("privateKey", asymKeys.private_key);
-
-      showSuccess(
-        "Successfully logged in with username " + response.data.username
+      await sendLogin(
+        credentials.username,
+        credentials.password,
+        showError,
+        onLoginSuccess
       );
-      setTimeout(() => navigate({ to: "/" }), 500);
     }
   };
 
