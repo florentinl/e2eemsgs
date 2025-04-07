@@ -1,0 +1,6 @@
+backend/.venv/
+backend/database
+backend/openapi.json
+frontend/argon2wasm/pkg
+frontend/node_modules/
+frontend/src/api-client/

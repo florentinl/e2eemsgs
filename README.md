@@ -1,5 +1,15 @@
 # End to End Encrypted messages
 
+## Run using docker-compose
+
+WARNING: the default docker-compose.yaml is for dev only, you should use the `docker-compose.prod.yaml` to test the website in its "production" build.
+
+```bash
+docker compose -f docker-compose.prod.yaml up -d
+```
+
+The site should be available on `http://localhost:3000`.
+
 ## Compiling the project
 
 ### Frontend
