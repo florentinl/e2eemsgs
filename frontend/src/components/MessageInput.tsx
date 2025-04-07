@@ -40,21 +40,30 @@ export default function MessageInput({
         variant="outlined"
         placeholder="Type a message"
         fullWidth
+        multiline
         value={message}
         onChange={handleChange}
         error={!!error}
         helperText={error || `${message.length}/${maxLength}`}
-        InputProps={{
-          endAdornment: (
-            <InputAdornment position="end">
-              <IconButton
-                onClick={handleSend}
-                disabled={message.trim() === "" || message.length > maxLength}
-              >
-                <Send />
-              </IconButton>
-            </InputAdornment>
-          ),
+        slotProps={{
+          input: {
+            onKeyDown: (event) => {
+              if (!event.shiftKey && event.key == "Enter") {
+                event.preventDefault();
+                handleSend();
+              }
+            },
+            endAdornment: (
+              <InputAdornment position="end">
+                <IconButton
+                  onClick={handleSend}
+                  disabled={message.trim() === "" || message.length > maxLength}
+                >
+                  <Send />
+                </IconButton>
+              </InputAdornment>
+            ),
+          },
         }}
       />
     </Box>
