@@ -59,7 +59,18 @@ def signup(user: User, response: Response) -> User:
 def challenge(req: ChallengeRequest, response: Response) -> Challenge:
     with Session(engine) as session:
         # Getting user key
-        user = session.exec(select(User).where(User.username == req.username)).one()
+        user = session.exec(
+            select(User).where(User.username == req.username)
+        ).one_or_none()
+        if user is None:
+            fake_public_key = (
+                "age1xaucv4dlgv5pvd6qngycg9xzh0q4606ezef0pk8xy50wkjteu3wqk6hek7"
+            )
+            fake_challenge = Challenge(
+                username=req.username,
+                challenge=asym_encrypt(generate_random_string(32), fake_public_key),
+            )
+            return fake_challenge
 
         # Generating challenge
         chall = Challenge(username=req.username, challenge=generate_random_string(32))
