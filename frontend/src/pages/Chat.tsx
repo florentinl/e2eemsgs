@@ -1,5 +1,5 @@
 import { Box } from "@mui/material";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ChatTopBar from "../components/ChatTopBar";
 import GroupSidebar from "../components/GroupSideBar";
 import MessageInput from "../components/MessageInput";
@@ -12,11 +12,14 @@ import {
   handleCreateGroupApiGroupsCreatePost,
   handleGetUserApiUsersGet,
   sendMessageApiMessagesPost,
+  whoamiApiSessionWhoamiGet,
+  type User,
 } from "../api-client";
 
 const ChatPage: React.FC<{}> = () => {
   const { groups, isConnected, setGroups } = useWebSocket();
   const [groupId, setGroupId] = useState<number>();
+  const [user, setUser] = useState<User>();
 
   const [pendingMessage, setPendingMessage] = useState("");
 
@@ -25,6 +28,12 @@ const ChatPage: React.FC<{}> = () => {
   );
 
   console.log(messages);
+
+  useEffect(() => {
+    whoamiApiSessionWhoamiGet().then(({ data }) => {
+      if (data) setUser(data);
+    });
+  }, []);
 
   const handleSelectGroup = async (newGroupId: number) => {
     // Save current pendingMessage as draft in previous groupId
@@ -179,7 +188,11 @@ const ChatPage: React.FC<{}> = () => {
             }}
           >
             {messages.map((message) => (
-              <MessageDisplay key={message.id} msg={message}></MessageDisplay>
+              <MessageDisplay
+                key={message.id}
+                msg={message}
+                self={user!}
+              ></MessageDisplay>
             ))}
           </Box>
 
