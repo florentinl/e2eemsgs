@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from "react";
-import type { Groups, Notification, SendMessage } from "../types";
+import type { Groups, Notification, Message } from "../types";
 import { useNavigate } from "@tanstack/react-router";
 import { fetchGroups } from "../lib/groups";
+import { sym_decrypt } from "argon2wasm";
 
 const WS_URL = `${window.location.protocol === "https:" ? "wss://" : "ws://"}${
   window.location.host
@@ -36,6 +37,32 @@ export const useWebSocket = () => {
             if (groupMap) setGroups(groupMap);
           });
         }
+        if (notification.type == "messageNotification") {
+          console.log("Received message:", notification);
+          setGroups((groups) => {
+            const newGroups = new Map(groups);
+            const msg = notification.message;
+            const group = newGroups.get(notification.message.group_id)!;
+            console.log("Member of group, ", group, groups);
+
+            const clearMessage = sym_decrypt(
+              {
+                nonce: msg.nonce,
+                message: msg.content,
+              },
+              group.symmetricKey
+            );
+
+            const message: Message = {
+              id: msg.id!,
+              sender_name: notification.sender_name,
+              content: clearMessage,
+            };
+
+            group.messages.set(message.id, message);
+            return newGroups;
+          });
+        }
       };
 
       ws.current.onerror = (error) => {
@@ -56,14 +83,5 @@ export const useWebSocket = () => {
     };
   }, []);
 
-  // Function to send a message
-  const sendMessage = (message: SendMessage) => {
-    if (ws.current && ws.current.readyState === WebSocket.OPEN) {
-      ws.current.send(JSON.stringify(message));
-    } else {
-      console.warn("WebSocket not connected, message not sent.");
-    }
-  };
-
-  return { groups, setGroups, isConnected, sendMessage };
+  return { groups, setGroups, isConnected };
 };

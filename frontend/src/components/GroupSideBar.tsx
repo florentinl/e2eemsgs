@@ -5,7 +5,7 @@ import CreateGroupDialog from "./CreateGroupDialog";
 
 type GroupSidebarProps = {
   groups: Groups;
-  onSelect: (group: string) => void; // Callback when a group is selected
+  onSelect: (group: number) => void; // Callback when a group is selected
   onCreateGroup: (groupName: string) => void; // Callback when a group is created
 };
 
@@ -14,9 +14,9 @@ export default function GroupSidebar({
   onSelect,
   onCreateGroup,
 }: GroupSidebarProps) {
-  const [selectedGroupId, setSelectedGroup] = useState<string | null>(null);
+  const [selectedGroupId, setSelectedGroup] = useState<number | null>(null);
 
-  const handleSelect = (group: string) => {
+  const handleSelect = (group: number) => {
     setSelectedGroup(group);
     onSelect(group);
   };

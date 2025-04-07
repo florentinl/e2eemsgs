@@ -23,7 +23,7 @@ type EncryptedMessage = {
 #[derive(Serialize, Deserialize)]
 pub struct EncryptedMessage {
     pub nonce: String,
-    pub cipher_text: String,
+    pub message: String,
 }
 
 fn key_from_str(key: &str) -> Result<Key<Aes256Gcm>, JsError> {
@@ -44,7 +44,7 @@ pub fn sym_encrypt_bytes(data: &[u8], key: &str) -> Result<JsValue, JsError> {
 
     serde_wasm_bindgen::to_value(&EncryptedMessage {
         nonce: BASE64_STANDARD.encode(nonce),
-        cipher_text: BASE64_STANDARD.encode(cipher_text),
+        message: BASE64_STANDARD.encode(cipher_text),
     })
     .map_err(|e| JsError::new(&e.to_string()))
 }
@@ -64,7 +64,7 @@ pub fn sym_decrypt_bytes(
     let message: EncryptedMessage =
         serde_wasm_bindgen::from_value(message).map_err(|e| JsError::new(&e.to_string()))?;
 
-    let cipher_text = BASE64_STANDARD.decode(message.cipher_text)?;
+    let cipher_text = BASE64_STANDARD.decode(message.message)?;
     let nonce = BASE64_STANDARD.decode(message.nonce)?;
     let nonce = nonce.as_slice().try_into()?;
 

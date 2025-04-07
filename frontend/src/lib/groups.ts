@@ -1,3 +1,4 @@
+import { asym_decrypt } from "argon2wasm";
 import {
   handleGetUserGroupsApiGroupsGet,
   type OwnGroupInfo,
@@ -7,6 +8,7 @@ import type { Groups } from "../types";
 export const fetchGroups = async () => {
   console.log("fetching groups...");
   const response = await handleGetUserGroupsApiGroupsGet();
+  console.log(response);
 
   if (response.error) {
     console.error("Error while fetching groups");
@@ -14,16 +16,19 @@ export const fetchGroups = async () => {
   }
 
   const data: OwnGroupInfo[] = response.data!.groups;
+  const privateKey = localStorage.getItem("privateKey")!;
 
   const groupMap: Groups = new Map();
-  data.forEach((group) =>
-    groupMap.set(group.group_id.toString(), {
-      id: group.group_id.toString(),
+  data.forEach((group) => {
+    const decryptedGroupKey = asym_decrypt(group.symmetric_key, privateKey);
+    groupMap.set(group.group_id, {
+      id: group.group_id,
       name: group.group_name,
-      symmetricKey: group.symmetric_key,
+      symmetricKey: decryptedGroupKey,
       members: new Set(),
-      messages: [],
-    })
-  );
+      messages: new Map(),
+    });
+  });
+  console.log(groupMap);
   return groupMap;
 };

@@ -3,30 +3,25 @@ import type {
   Message as ApiMessage,
 } from "./api-client/types.gen";
 
-export type Groups = Map<string, Group>;
+export type Groups = Map<number, Group>;
 
 export type Group = {
-  id: string;
+  id: number;
   name: string;
   symmetricKey: string;
   members: Set<User>;
-  messages: Message[];
+  messages: Map<number, Message>;
 };
 
 export type User = {
-  id: string;
+  id: number;
   username: string;
   publickey: string;
 };
 
 export type Message = {
-  id: string;
-  sender: User;
-  content: string;
-};
-
-export type SendMessage = {
-  groupId: string;
+  id: number;
+  sender_name: string;
   content: string;
 };
 
@@ -43,6 +38,7 @@ export type QuitGroupNotification = {
 export type MessageNotification = {
   type: "messageNotification";
   message: ApiMessage;
+  sender_name: string;
 };
 
 export type Notification =

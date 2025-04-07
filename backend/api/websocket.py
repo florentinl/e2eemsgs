@@ -4,7 +4,8 @@ from typing import Literal
 
 import jwt
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from models import Group, Message
+from sqlmodel import Session, select
+from models import Group, Message, User, engine
 from nats.aio.msg import Msg
 from pydantic import BaseModel, Field
 
@@ -19,6 +20,7 @@ router = APIRouter(prefix="/ws")
 class MessageNotification(BaseModel):
     type: Literal["messageNotification"] = Field(default="messageNotification")
     message: Message
+    sender_name: str
 
 
 class JoinGroupNotification(BaseModel):
@@ -88,8 +90,11 @@ def message_handler_builder(ws: WebSocket, consumer: NATSMultiSubjectConsumer):
 
 async def setup_consumer(uid: int, ws: WebSocket) -> NATSMultiSubjectConsumer:
     # Get the followed groups from the database instead:
-    groups = ["group1", "group2"]
-    subjects = list(map(lambda g: f"{STREAM_NAME}.groups.{g}", groups))
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.id == uid)).one()
+        groups = user.groups
+
+    subjects = list(map(lambda g: f"{STREAM_NAME}.groups.{g.group_id}", groups))
     subjects.append(f"chat.users.{uid}")  # Personal subject for system messages
 
     consumer = NATSMultiSubjectConsumer()

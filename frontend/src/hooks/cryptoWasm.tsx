@@ -6,6 +6,7 @@ import {
   type ReactNode,
 } from "react";
 import init from "argon2wasm";
+import LoadingPage from "../pages/LoadingPage";
 
 interface CryptoWasmContextType {
   initialized: boolean;
@@ -28,7 +29,7 @@ export const CryptoWasmProvider: React.FC<{ children: ReactNode }> = ({
 
   return (
     <CryptoWasmContext.Provider value={{ initialized }}>
-      {children}
+      {!initialized ? <LoadingPage /> : children}
     </CryptoWasmContext.Provider>
   );
 };

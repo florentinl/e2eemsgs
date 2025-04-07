@@ -16,7 +16,7 @@ const MessageDisplay = ({ msg }: MessageProps) => {
     >
       <CardContent>
         <Typography variant="subtitle2" color="textSecondary">
-          {msg.sender.username}
+          {msg.sender_name}
         </Typography>
         <Typography variant="body1" sx={{ whiteSpace: "pre-line" }}>
           {msg.content}
