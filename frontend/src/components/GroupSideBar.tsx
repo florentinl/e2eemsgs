@@ -2,6 +2,7 @@ import { useState } from "react";
 import { List, ListItem, ListItemText, Paper, Box } from "@mui/material";
 import type { Groups } from "../types";
 import CreateGroupDialog from "./CreateGroupDialog";
+import ProfileMenu from "./ProfileMenu";
 
 type GroupSidebarProps = {
   groups: Groups;
@@ -23,6 +24,7 @@ export default function GroupSidebar({
 
   return (
     <Paper sx={{ width: 250, height: "100vh", overflowY: "auto" }}>
+      <ProfileMenu />
       <List>
         {Array.from(groups.keys()).map((groupId) => (
           <ListItem
