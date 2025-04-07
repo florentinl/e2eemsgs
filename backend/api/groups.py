@@ -144,6 +144,21 @@ def handle_get_user_groups(req: Request) -> OwnGroupsResponse:
         return OwnGroupsResponse(groups=groups)
 
 
+@groups_router.get("/users")
+def get_group_users(req: Request, group_id: int) -> list[User]:
+    with Session(engine) as session:
+        uid = req.state.uid
+
+        if not is_member(uid, group_id):
+            raise HTTPException(
+                status_code=403, detail="You do not belong to this group"
+            )
+
+        group = session.exec(select(Group).where(Group.id == group_id)).one()
+        users = list(map(lambda member: member.user, group.members))
+        return users  # type: ignore
+
+
 def is_member(user_id: int, group_id: int) -> bool:
     with Session(engine) as session:
         return (

@@ -144,9 +144,8 @@ const ChatPage: React.FC<{}> = () => {
           <Box sx={{ mx: 2 }}>
             <ChatTopBar
               groupName={groups.get(groupId)?.name || "Select a group"}
-              onBack={() => {}}
-              onSettings={() => {}}
               onAddUser={handleAddUser}
+              groupId={groupId}
             />
           </Box>
 
@@ -165,7 +164,7 @@ const ChatPage: React.FC<{}> = () => {
           </Box>
 
           {/* Message Entry Field */}
-          <Box sx={{ alignItems: "flex-end" }}>
+          <Box>
             <MessageInput onSend={handleSendMessage} maxLength={500} />
           </Box>
         </Box>

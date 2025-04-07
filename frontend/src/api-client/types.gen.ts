@@ -232,6 +232,33 @@ export type HandleGetUserGroupsApiGroupsGetResponses = {
 
 export type HandleGetUserGroupsApiGroupsGetResponse = HandleGetUserGroupsApiGroupsGetResponses[keyof HandleGetUserGroupsApiGroupsGetResponses];
 
+export type GetGroupUsersApiGroupsUsersGetData = {
+    body?: never;
+    path?: never;
+    query: {
+        group_id: number;
+    };
+    url: '/api/groups/users';
+};
+
+export type GetGroupUsersApiGroupsUsersGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetGroupUsersApiGroupsUsersGetError = GetGroupUsersApiGroupsUsersGetErrors[keyof GetGroupUsersApiGroupsUsersGetErrors];
+
+export type GetGroupUsersApiGroupsUsersGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: Array<User>;
+};
+
+export type GetGroupUsersApiGroupsUsersGetResponse = GetGroupUsersApiGroupsUsersGetResponses[keyof GetGroupUsersApiGroupsUsersGetResponses];
+
 export type GetGroupMessagesApiMessagesGetData = {
     body?: never;
     path?: never;
