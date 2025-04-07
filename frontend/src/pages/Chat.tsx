@@ -15,14 +15,33 @@ import {
 } from "../api-client";
 
 const ChatPage: React.FC<{}> = () => {
-  const { groups, isConnected } = useWebSocket();
+  const { groups, isConnected, setGroups } = useWebSocket();
   const [groupId, setGroupId] = useState<number>();
+
+  const [pendingMessage, setPendingMessage] = useState("");
 
   const messages = Array.from(
     groups.get(groupId ?? 0)?.messages.values() ?? []
   );
 
   console.log(messages);
+
+  const handleSelectGroup = async (newGroupId: number) => {
+    // Save current pendingMessage as draft in previous groupId
+    if (groupId) {
+      const newGroups = new Map(groups);
+      newGroups.set(groupId, {
+        ...newGroups.get(groupId)!,
+        draft: pendingMessage,
+      });
+      setGroups(newGroups);
+    }
+
+    // Restore draft as pendingMessage in new groupId
+    setPendingMessage(groups.get(newGroupId)?.draft || "");
+
+    setGroupId(newGroupId);
+  };
 
   const handleCreateGroup = async (groupName: string) => {
     console.log("Creation of group:", { groupName });
@@ -125,7 +144,7 @@ const ChatPage: React.FC<{}> = () => {
       {/* Sidebar */}
       <GroupSidebar
         groups={groups}
-        onSelect={(groupId) => setGroupId(groupId)}
+        onSelect={handleSelectGroup}
         onCreateGroup={handleCreateGroup}
       />
       {/* Main Layout */}
@@ -166,7 +185,12 @@ const ChatPage: React.FC<{}> = () => {
 
           {/* Message Entry Field */}
           <Box sx={{ alignItems: "flex-end" }}>
-            <MessageInput onSend={handleSendMessage} maxLength={500} />
+            <MessageInput
+              onSend={handleSendMessage}
+              maxLength={500}
+              message={pendingMessage}
+              setMessage={setPendingMessage}
+            />
           </Box>
         </Box>
       )}

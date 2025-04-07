@@ -5,10 +5,16 @@ import { Send } from "@mui/icons-material";
 type MessageInputProps = {
   onSend: (message: string) => void; // Callback function to send the message
   maxLength: number; // Maximum character limit
+  message: string;
+  setMessage: (message: string) => void;
 };
 
-export default function MessageInput({ onSend, maxLength }: MessageInputProps) {
-  const [message, setMessage] = useState<string>("");
+export default function MessageInput({
+  onSend,
+  maxLength,
+  message,
+  setMessage,
+}: MessageInputProps) {
   const [error, setError] = useState<string>("");
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {

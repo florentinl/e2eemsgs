@@ -11,6 +11,7 @@ export type Group = {
   symmetricKey: string;
   members: Set<User>;
   messages: Map<number, Message>;
+  draft?: string;
 };
 
 export type User = {
