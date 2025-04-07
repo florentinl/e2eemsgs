@@ -1,3 +1,4 @@
+import logging
 from typing import List, Literal
 
 from fastapi import APIRouter, HTTPException, Request
@@ -10,6 +11,8 @@ from api.websocket import JoinGroupNotification
 
 groups_router = APIRouter(prefix="/groups")
 users_router = APIRouter(prefix="/users")
+
+logger = logging.getLogger("uvicorn")
 
 
 class CreateGroupRequest(BaseModel):
@@ -46,7 +49,8 @@ async def handle_create_group(req: Request, data: CreateGroupRequest) -> Group:
         group = Group(name=data.name, owner_id=uid)
         session.add(group)
         session.commit()
-        session.refresh(group)
+        logger.info(group)
+        session.refresh(group, ["id"])
 
         # Generating the groupmember
         membership = GroupMember(
@@ -57,6 +61,7 @@ async def handle_create_group(req: Request, data: CreateGroupRequest) -> Group:
         session.add(membership)
         session.commit()
         session.refresh(membership)
+        session.refresh(group)
 
         # Send notification to listen on the websocket
         js = await get_js()
@@ -112,7 +117,7 @@ async def handle_add_group_user(req: Request, data: GroupAddUserRequest) -> Grou
         return membership
 
 
-@groups_router.post("/")
+@groups_router.get("/")
 def handle_get_user_groups(req: Request) -> OwnGroupsResponse:
     with Session(engine) as session:
         uid = req.state.uid

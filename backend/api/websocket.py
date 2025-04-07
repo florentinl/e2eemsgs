@@ -78,7 +78,7 @@ def message_handler_builder(ws: WebSocket, consumer: NATSMultiSubjectConsumer):
                 case MessageNotification():
                     pass
 
-            await ws.send_json(json.dumps(wsmsg))
+            await ws.send_text(wsmsg.msg.model_dump_json())
         except ValueError as e:
             logger.error("Invalid message: %s", str(e))
             return

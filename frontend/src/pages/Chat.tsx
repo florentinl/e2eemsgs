@@ -1,60 +1,24 @@
 import { Box } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import ChatTopBar from "../components/ChatTopBar";
 import GroupSidebar from "../components/GroupSideBar";
 import MessageInput from "../components/MessageInput";
 import MessageDisplay from "../components/Message";
 import { useWebSocket } from "../hooks/websockets";
 import LoadingPage from "./LoadingPage";
-import type { Group } from "../types";
 import { useCryptoWasmReady } from "../hooks/cryptoWasm";
 import { asym_encrypt, generate_sym_key } from "argon2wasm";
 import {
   handleAddGroupUserApiGroupsAddPost,
   handleCreateGroupApiGroupsCreatePost,
   handleGetUserApiUsersGet,
-  handleGetUserGroupsApiGroupsPost,
-  type OwnGroupInfo,
 } from "../api-client";
 
 const ChatPage: React.FC<{}> = () => {
-  const { sendMessage, isConnected } = useWebSocket();
+  const { groups, sendMessage, isConnected } = useWebSocket();
   const { initialized } = useCryptoWasmReady();
-  const [groups, setGroups] = useState<Map<string, Group>>(new Map());
   const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
   const [groupId, setGroupId] = useState<string>("");
-
-  const fetchGroups = async () => {
-    try {
-      const response = await handleGetUserGroupsApiGroupsPost({});
-
-      if (response.error || !response.data) {
-        console.error("Error while fetching groups");
-        return;
-      } else {
-        const data: OwnGroupInfo[] = response.data.groups;
-
-        const groupMap = new Map<string, Group>();
-        data.forEach((group) =>
-          groupMap.set(group.group_id.toString(), {
-            id: group.group_id.toString(),
-            name: group.group_name,
-            symmetricKey: group.symmetric_key,
-            members: new Set(),
-            messages: [],
-          })
-        );
-
-        setGroups(groupMap);
-      }
-    } catch (err) {
-      console.error("Failed to fetch groups", err);
-    }
-  };
-
-  useEffect(() => {
-    fetchGroups();
-  }, []);
 
   const handleSelectGroup = (groupId: string) => {
     setSelectedGroupId(groupId);
