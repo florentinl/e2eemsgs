@@ -4,7 +4,9 @@ from contextlib import asynccontextmanager
 from api import router
 from api.messaging import create_stream
 from api.session import AuthMiddleware
+from config import ENVIRONMENT, FRONTEND_DIST_DIR
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 from models import create_db_and_tables
 
 logger = logging.getLogger("uvicorn")
@@ -21,7 +23,8 @@ async def lifespan(_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.include_router(router)
 app.add_middleware(middleware_class=AuthMiddleware)
-
+if ENVIRONMENT == "prod":
+    app.mount("/", StaticFiles(directory=FRONTEND_DIST_DIR, html=True))
 
 if __name__ == "__main__":
     import json
