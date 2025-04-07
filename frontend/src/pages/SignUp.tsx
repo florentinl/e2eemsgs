@@ -15,6 +15,7 @@ import { derive_key_pair } from "argon2wasm";
 import InfoBox from "../components/InfoBox";
 import { signupApiAuthSignupPost } from "../api-client";
 import { useNavigate } from "@tanstack/react-router";
+import { sendLogin } from "../lib/auth";
 
 const SignUp = () => {
   const navigate = useNavigate();
@@ -23,6 +24,7 @@ const SignUp = () => {
     password: "",
     confirmPassword: "",
   });
+  const [disableButton, setDisableButton] = useState(false);
 
   // states used to know what textfields must be set as error, and what error to display
   const [usernameError, setUsernameError] = useState(false);
@@ -75,6 +77,12 @@ const SignUp = () => {
     }
   };
 
+  const onLoginSuccess = (msg: string) => {
+    setDisableButton(true);
+    setTimeout(() => navigate({ to: "/" }), 500);
+    showSuccess(msg);
+  };
+
   const sendSignUp = async (username: string, password: string) => {
     const asymKeys = derive_key_pair(password, username);
 
@@ -97,10 +105,7 @@ const SignUp = () => {
     localStorage.setItem("publicKey", asymKeys.public_key);
     localStorage.setItem("privateKey", asymKeys.private_key);
 
-    setTimeout(() => navigate({ to: "/login" }), 500);
-    showSuccess(
-      "Successfully signed up with username " + response.data.username
-    );
+    await sendLogin(username, password, showError, onLoginSuccess);
   };
 
   return (
@@ -157,6 +162,7 @@ const SignUp = () => {
           />
           <Button
             fullWidth
+            disabled={disableButton}
             variant="contained"
             color="primary"
             sx={{ mt: 2 }}
