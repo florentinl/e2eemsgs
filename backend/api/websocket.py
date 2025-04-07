@@ -54,7 +54,7 @@ async def websocket_endpoint(ws: WebSocket):
 
     while True:
         try:
-            _ = await ws.receive_json()
+            _ = await ws.receive_bytes()
             logger.warning(
                 "User %s sent unexpected data through the websocket", user_id
             )
