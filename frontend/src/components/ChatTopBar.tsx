@@ -4,7 +4,6 @@ import AddUserDialog from "./AddUserDialog";
 
 type ChatTopBarProps = {
   groupName: string; // The name of the currently selected group
-  groupId: string;
   onBack: () => void; // Callback for back button (if needed)
   onSettings: () => void; // Callback for settings button (if needed)
   onAddUser: (username: string) => Promise<void>; // Callback for adding user

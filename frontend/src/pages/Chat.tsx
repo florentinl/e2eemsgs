@@ -6,32 +6,28 @@ import MessageInput from "../components/MessageInput";
 import MessageDisplay from "../components/Message";
 import { useWebSocket } from "../hooks/websockets";
 import LoadingPage from "./LoadingPage";
-import { useCryptoWasmReady } from "../hooks/cryptoWasm";
-import { asym_encrypt, generate_sym_key } from "argon2wasm";
+import { asym_encrypt, generate_sym_key, sym_encrypt } from "argon2wasm";
 import {
   handleAddGroupUserApiGroupsAddPost,
   handleCreateGroupApiGroupsCreatePost,
   handleGetUserApiUsersGet,
+  sendMessageApiMessagesPost,
 } from "../api-client";
 
 const ChatPage: React.FC<{}> = () => {
-  const { groups, sendMessage, isConnected } = useWebSocket();
-  const { initialized } = useCryptoWasmReady();
-  const [selectedGroupId, setSelectedGroupId] = useState<string | null>(null);
-  const [groupId, setGroupId] = useState<string>("");
+  const { groups, isConnected } = useWebSocket();
+  const [groupId, setGroupId] = useState<number>();
 
-  const handleSelectGroup = (groupId: string) => {
-    setSelectedGroupId(groupId);
-    const group = Array.from(groups.entries()).find(
-      ([_, g]) => g.id === groupId
-    );
-    if (group) setGroupId(group[0]);
-  };
+  const messages = Array.from(
+    groups.get(groupId ?? 0)?.messages.values() ?? []
+  );
+
+  console.log(messages);
 
   const handleCreateGroup = async (groupName: string) => {
     console.log("Creation of group:", { groupName });
     const publicKey = localStorage.getItem("publicKey");
-    if (initialized && publicKey) {
+    if (publicKey) {
       const symmetricKey = generate_sym_key();
       const ciphered_symKey = asym_encrypt(symmetricKey, publicKey);
       try {
@@ -56,6 +52,8 @@ const ChatPage: React.FC<{}> = () => {
   };
 
   const handleAddUser = async (username: string) => {
+    if (groupId === undefined) return;
+
     const currGroupName = groups.get(groupId)?.name || "Select a group";
     const currSymKey = groups.get(groupId)?.symmetricKey;
     console.log("Adding user", { username }, "to group ", { currGroupName });
@@ -74,12 +72,7 @@ const ChatPage: React.FC<{}> = () => {
           return;
         }
       }
-      if (
-        initialized &&
-        currSymKey &&
-        userResponse.data.id &&
-        parseInt(groupId)
-      ) {
+      if (currSymKey && userResponse.data.id && groupId) {
         const ciphered_symKey = asym_encrypt(
           currSymKey,
           userResponse.data.public_key
@@ -88,7 +81,7 @@ const ChatPage: React.FC<{}> = () => {
         const addResponse = await handleAddGroupUserApiGroupsAddPost({
           body: {
             user_id: userResponse.data.id,
-            group_id: parseInt(groupId),
+            group_id: groupId,
             symmetric_key: ciphered_symKey,
           },
         });
@@ -109,9 +102,19 @@ const ChatPage: React.FC<{}> = () => {
   };
 
   const handleSendMessage = (message: string) => {
-    sendMessage({
-      groupId: selectedGroupId!,
-      content: message,
+    if (groupId === undefined) return;
+
+    const key = groups.get(groupId)?.symmetricKey!;
+
+    const encryptedMessage = sym_encrypt(message, key);
+
+    console.log(encryptedMessage);
+    sendMessageApiMessagesPost({
+      body: {
+        content: encryptedMessage.message,
+        nonce: encryptedMessage.nonce,
+        group_id: groupId,
+      },
     });
   };
 
@@ -122,11 +125,11 @@ const ChatPage: React.FC<{}> = () => {
       {/* Sidebar */}
       <GroupSidebar
         groups={groups}
-        onSelect={handleSelectGroup}
+        onSelect={(groupId) => setGroupId(groupId)}
         onCreateGroup={handleCreateGroup}
       />
       {/* Main Layout */}
-      {!selectedGroupId ? (
+      {!groupId ? (
         <Box></Box>
       ) : (
         <Box
@@ -141,7 +144,6 @@ const ChatPage: React.FC<{}> = () => {
           <Box sx={{ mx: 2 }}>
             <ChatTopBar
               groupName={groups.get(groupId)?.name || "Select a group"}
-              groupId={groupId}
               onBack={() => {}}
               onSettings={() => {}}
               onAddUser={handleAddUser}
@@ -157,7 +159,7 @@ const ChatPage: React.FC<{}> = () => {
               my: 2,
             }}
           >
-            {groups.get(groupId)?.messages.map((message) => (
+            {messages.map((message) => (
               <MessageDisplay key={message.id} msg={message}></MessageDisplay>
             ))}
           </Box>

@@ -1,9 +1,9 @@
 import logging
 
 from fastapi import APIRouter, HTTPException, Request
-from models import Message, engine
+from models import Message, User, engine
 from pydantic import BaseModel
-from sqlmodel import Session
+from sqlmodel import Session, select
 
 from api.groups import is_member
 from api.messaging import STREAM_NAME, get_js
@@ -47,10 +47,15 @@ async def send_message(
         session.commit()
         session.refresh(message)
 
+    # Get user name
+    with Session(engine) as session:
+        user = session.exec(select(User).where(User.id == user_id)).one()
+
     # Send message notification
-    group_message = MessageNotification(message=message)
+    group_message = MessageNotification(message=message, sender_name=user.username)
+    subject = f"{STREAM_NAME}.groups.{message.group_id}"
     await js.publish(
-        subject=f"{STREAM_NAME}.groups.{message.group_id}",
+        subject=subject,
         payload=group_message.model_dump_json().encode(),
         stream=STREAM_NAME,
     )

@@ -22,6 +22,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 1000,
   },
   server: {
+    allowedHosts: ["flaptop.tail1b133.ts.net"],
     proxy: {
       "/api": {
         target: "http://localhost:8000",

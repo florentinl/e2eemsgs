@@ -103,7 +103,7 @@ const SignUp = () => {
     localStorage.setItem("publicKey", asymKeys.public_key);
     localStorage.setItem("privateKey", asymKeys.private_key);
 
-    setTimeout(() => navigate({ to: "/" }), 500);
+    setTimeout(() => navigate({ to: "/login" }), 500);
     showSuccess(
       "Successfully signed up with username " + response.data.username
     );
