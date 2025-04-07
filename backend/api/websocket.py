@@ -26,8 +26,15 @@ class JoinGroupNotification(BaseModel):
     group: Group
 
 
+class QuitGroupNotification(BaseModel):
+    type: Literal["quitGroupNotification"] = Field(default="quitGroupNotification")
+    group_id: int
+
+
 class NatsNotifications(BaseModel):
-    msg: MessageNotification | JoinGroupNotification = Field(discriminator="type")
+    msg: MessageNotification | JoinGroupNotification | QuitGroupNotification = Field(
+        discriminator="type"
+    )
 
 
 @router.websocket("/")
@@ -65,7 +72,9 @@ def message_handler_builder(ws: WebSocket, consumer: NATSMultiSubjectConsumer):
 
             match wsmsg.msg:
                 case JoinGroupNotification(group=group):
-                    await consumer.add_subject(f"{STREAM_NAME}.groups.{group.name}")
+                    await consumer.add_subject(f"{STREAM_NAME}.groups.{group.id}")
+                case QuitGroupNotification(group_id=group_id):
+                    await consumer.remove_subject(f"{STREAM_NAME}.groups.{group_id}")
                 case MessageNotification():
                     pass
 
