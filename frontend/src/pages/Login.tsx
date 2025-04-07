@@ -5,6 +5,7 @@ import {
   CardContent,
   TextField,
   Typography,
+  Link,
 } from "@mui/material";
 import {
   useEffect,
@@ -45,7 +46,7 @@ const Login = () => {
         navigate({ to: "/" });
       }
     });
-  });
+  }, []);
 
   const showError = (message: string) => {
     setIsInfoError(true);
@@ -182,6 +183,25 @@ const Login = () => {
             onChange={handleChange}
             error={passwordError}
           />
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              width: "100%",
+              justifyContent: "flex-end",
+            }}
+          >
+            <Link
+              sx={{
+                ":hover": {
+                  cursor: "pointer",
+                },
+              }}
+              onClick={() => navigate({ to: "/signup" })}
+            >
+              sign up here
+            </Link>
+          </Box>
           <InfoBox
             show={showInfo}
             content={infoContent}
