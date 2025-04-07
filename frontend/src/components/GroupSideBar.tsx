@@ -29,7 +29,9 @@ export default function GroupSidebar({
             key={groupId}
             onClick={() => handleSelect(groupId)}
             sx={{
-              backgroundColor:
+              borderRadius: "1em",
+              borderStyle: "solid",
+              borderColor:
                 selectedGroupId === groupId ? "#e0e0e0" : "transparent",
             }}
           >
