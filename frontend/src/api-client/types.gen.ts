@@ -15,6 +15,11 @@ export type CreateGroupRequest = {
     symmetric_key: string;
 };
 
+export type EditProfileRequest = {
+    description: string;
+    social_link: string;
+};
+
 export type ExceptionModel = {
     detail: string;
 };
@@ -75,6 +80,8 @@ export type User = {
     id?: number | null;
     username: string;
     public_key: string;
+    description?: string | null;
+    social_link?: string | null;
 };
 
 export type ValidationError = {
@@ -289,32 +296,84 @@ export type WhoamiApiSessionWhoamiGetResponses = {
 
 export type WhoamiApiSessionWhoamiGetResponse = WhoamiApiSessionWhoamiGetResponses[keyof WhoamiApiSessionWhoamiGetResponses];
 
-export type HandleGetUserApiUsersGetData = {
+export type HandleGetUserByUsernameApiUsersUsernameGetData = {
     body?: never;
     path?: never;
     query: {
         username: string;
     };
-    url: '/api/users/';
+    url: '/api/users/username';
 };
 
-export type HandleGetUserApiUsersGetErrors = {
+export type HandleGetUserByUsernameApiUsersUsernameGetErrors = {
     /**
      * Validation Error
      */
     422: HttpValidationError;
 };
 
-export type HandleGetUserApiUsersGetError = HandleGetUserApiUsersGetErrors[keyof HandleGetUserApiUsersGetErrors];
+export type HandleGetUserByUsernameApiUsersUsernameGetError = HandleGetUserByUsernameApiUsersUsernameGetErrors[keyof HandleGetUserByUsernameApiUsersUsernameGetErrors];
 
-export type HandleGetUserApiUsersGetResponses = {
+export type HandleGetUserByUsernameApiUsersUsernameGetResponses = {
     /**
      * Successful Response
      */
     200: User;
 };
 
-export type HandleGetUserApiUsersGetResponse = HandleGetUserApiUsersGetResponses[keyof HandleGetUserApiUsersGetResponses];
+export type HandleGetUserByUsernameApiUsersUsernameGetResponse = HandleGetUserByUsernameApiUsersUsernameGetResponses[keyof HandleGetUserByUsernameApiUsersUsernameGetResponses];
+
+export type HandleGetUserByIdApiUsersIdGetData = {
+    body?: never;
+    path?: never;
+    query: {
+        uid: number;
+    };
+    url: '/api/users/id';
+};
+
+export type HandleGetUserByIdApiUsersIdGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type HandleGetUserByIdApiUsersIdGetError = HandleGetUserByIdApiUsersIdGetErrors[keyof HandleGetUserByIdApiUsersIdGetErrors];
+
+export type HandleGetUserByIdApiUsersIdGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: User;
+};
+
+export type HandleGetUserByIdApiUsersIdGetResponse = HandleGetUserByIdApiUsersIdGetResponses[keyof HandleGetUserByIdApiUsersIdGetResponses];
+
+export type HandleEditProfileApiUsersEditProfilePostData = {
+    body: EditProfileRequest;
+    path?: never;
+    query?: never;
+    url: '/api/users/edit_profile';
+};
+
+export type HandleEditProfileApiUsersEditProfilePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type HandleEditProfileApiUsersEditProfilePostError = HandleEditProfileApiUsersEditProfilePostErrors[keyof HandleEditProfileApiUsersEditProfilePostErrors];
+
+export type HandleEditProfileApiUsersEditProfilePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: User;
+};
+
+export type HandleEditProfileApiUsersEditProfilePostResponse = HandleEditProfileApiUsersEditProfilePostResponses[keyof HandleEditProfileApiUsersEditProfilePostResponses];
 
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});

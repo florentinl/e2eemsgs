@@ -14,6 +14,8 @@ class User(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     username: str = Field(min_length=8, unique=True)
     public_key: str = Field(min_length=1)
+    description: str | None = Field(default=None)
+    social_link: str | None = Field(default=None)
     groups: List["GroupMember"] = Relationship(back_populates="user")
 
 

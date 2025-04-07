@@ -10,7 +10,7 @@ import { asym_encrypt, generate_sym_key, sym_encrypt } from "argon2wasm";
 import {
   handleAddGroupUserApiGroupsAddPost,
   handleCreateGroupApiGroupsCreatePost,
-  handleGetUserApiUsersGet,
+  handleGetUserByUsernameApiUsersUsernameGet,
   sendMessageApiMessagesPost,
   whoamiApiSessionWhoamiGet,
   type User,
@@ -86,7 +86,7 @@ const ChatPage: React.FC<{}> = () => {
     const currSymKey = groups.get(groupId)?.symmetricKey;
     console.log("Adding user", { username }, "to group ", { currGroupName });
     try {
-      const userResponse = await handleGetUserApiUsersGet({
+      const userResponse = await handleGetUserByUsernameApiUsersUsernameGet({
         query: {
           username: username,
         },
