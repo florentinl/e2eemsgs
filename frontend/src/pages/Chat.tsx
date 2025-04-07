@@ -173,7 +173,6 @@ const ChatPage: React.FC<{}> = () => {
             <ChatTopBar
               groupName={groups.get(groupId)?.name || "Select a group"}
               onBack={() => {}}
-              onSettings={() => {}}
               onAddUser={handleAddUser}
             />
           </Box>
