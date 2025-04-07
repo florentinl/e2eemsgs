@@ -4,6 +4,12 @@ import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
 import { IconButton } from "@mui/material";
 import { Settings } from "@mui/icons-material";
+import {
+  handleEditProfileApiUsersEditProfilePost,
+  whoamiApiSessionWhoamiGet,
+} from "../api-client";
+import UserProfileDialog from "./UserProfileDialog";
+import EditProfileDialog from "./EditProfileDialog";
 
 export default function ProfileMenu() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -13,6 +19,44 @@ export default function ProfileMenu() {
   };
   const handleClose = () => {
     setAnchorEl(null);
+  };
+
+  const [username, setUsername] = React.useState<null | string>(null);
+  const [description, setDescription] = React.useState<
+    undefined | null | string
+  >(undefined);
+  const [socialLink, setSocialLink] = React.useState<undefined | null | string>(
+    undefined
+  );
+
+  React.useEffect(() => {
+    whoamiApiSessionWhoamiGet().then((response) => {
+      if (response.error || !response.data) {
+        console.error("Error while fetching self");
+        return;
+      }
+      setUsername(response.data.username);
+      setDescription(response.data.description);
+      setSocialLink(response.data.social_link);
+    });
+  }, []);
+
+  const handleEditProfile = (description: string, socialLink: string) => {
+    handleEditProfileApiUsersEditProfilePost({
+      body: {
+        description: description,
+        social_link: socialLink,
+      },
+    }).then((response) => {
+      if (response.error || !response.data) {
+        console.error("Error while fetching self");
+        return;
+      }
+      setUsername(response.data.username);
+      setDescription(response.data.description);
+      setSocialLink(response.data.social_link);
+      return;
+    });
   };
 
   return (
@@ -32,9 +76,18 @@ export default function ProfileMenu() {
         open={open}
         onClose={handleClose}
       >
-        <ListSubheader>Category 1</ListSubheader>
-        <MenuItem onClick={handleClose}>Option 1</MenuItem>
-        <MenuItem onClick={handleClose}>Option 2</MenuItem>
+        <ListSubheader>{username}</ListSubheader>
+        <UserProfileDialog
+          username={username}
+          description={description}
+          socialLink={socialLink}
+        />
+        <EditProfileDialog
+          initialDescription={description}
+          initialSocialLink={socialLink}
+          handleEditProfile={handleEditProfile}
+        />
+        <MenuItem>Logout</MenuItem>
       </Menu>
     </div>
   );

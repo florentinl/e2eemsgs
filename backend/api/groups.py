@@ -2,15 +2,14 @@ import logging
 from typing import List, Literal
 
 from fastapi import APIRouter, HTTPException, Request
-from models import Group, GroupMember, User, engine
+from models import Group, GroupMember, engine
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
 from api.messaging import STREAM_NAME, get_js
 from api.websocket import JoinGroupNotification
 
-groups_router = APIRouter(prefix="/groups")
-users_router = APIRouter(prefix="/users")
+router = APIRouter(prefix="/groups")
 
 logger = logging.getLogger("uvicorn")
 
@@ -41,7 +40,7 @@ class OwnGroupsResponse(BaseModel):
     groups: List[OwnGroupInfo]
 
 
-@groups_router.post("/create")
+@router.post("/create")
 async def handle_create_group(req: Request, data: CreateGroupRequest) -> Group:
     with Session(engine) as session:
         uid = req.state.uid
@@ -74,19 +73,7 @@ async def handle_create_group(req: Request, data: CreateGroupRequest) -> Group:
         return group
 
 
-@users_router.get("/")
-def handle_get_user(username: str) -> User:
-    with Session(engine) as session:
-        # Getting new user's info
-        user = session.exec(select(User).where(User.username == username)).one()
-
-        if not user or user.id is None:
-            raise HTTPException(status_code=404, detail="User not found")
-
-        return user
-
-
-@groups_router.post("/add")
+@router.post("/add")
 async def handle_add_group_user(req: Request, data: GroupAddUserRequest) -> GroupMember:
     with Session(engine) as session:
         uid = req.state.uid
@@ -118,7 +105,7 @@ async def handle_add_group_user(req: Request, data: GroupAddUserRequest) -> Grou
         return membership
 
 
-@groups_router.get("/")
+@router.get("/")
 def handle_get_user_groups(req: Request) -> OwnGroupsResponse:
     with Session(engine) as session:
         uid = req.state.uid
