@@ -5,6 +5,9 @@ from models import Group, GroupMember, User, engine
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
+from api.messaging import STREAM_NAME, get_js
+from api.websocket import JoinGroupNotification
+
 groups_router = APIRouter(prefix="/groups")
 users_router = APIRouter(prefix="/users")
 
@@ -36,7 +39,7 @@ class OwnGroupsResponse(BaseModel):
 
 
 @groups_router.post("/create")
-def handle_create_group(req: Request, data: CreateGroupRequest) -> Group:
+async def handle_create_group(req: Request, data: CreateGroupRequest) -> Group:
     with Session(engine) as session:
         uid = req.state.uid
         # Generating the group
@@ -55,6 +58,14 @@ def handle_create_group(req: Request, data: CreateGroupRequest) -> Group:
         session.commit()
         session.refresh(membership)
 
+        # Send notification to listen on the websocket
+        js = await get_js()
+        await js.publish(
+            subject=f"{STREAM_NAME}.users.{uid}",
+            payload=JoinGroupNotification(group=group).model_dump_json().encode(),
+            stream=STREAM_NAME,
+        )
+
         return group
 
 
@@ -71,7 +82,7 @@ def handle_get_user(username: str) -> User:
 
 
 @groups_router.post("/add")
-def handle_add_group_user(req: Request, data: GroupAddUserRequest) -> GroupMember:
+async def handle_add_group_user(req: Request, data: GroupAddUserRequest) -> GroupMember:
     with Session(engine) as session:
         uid = req.state.uid
         # Getting the group's owner id
@@ -89,6 +100,14 @@ def handle_add_group_user(req: Request, data: GroupAddUserRequest) -> GroupMembe
         session.add(membership)
         session.commit()
         session.refresh(membership)
+
+        # Send notification to the user that he joined the group
+        js = await get_js()
+        await js.publish(
+            subject=f"{STREAM_NAME}.users.{data.user_id}",
+            payload=JoinGroupNotification(group=group).model_dump_json().encode(),
+            stream=STREAM_NAME,
+        )
 
         return membership
 
