@@ -4,7 +4,7 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import { Box, IconButton, MenuItem } from "@mui/material";
+import { Box, IconButton, MenuItem, Typography } from "@mui/material";
 import { Close, Link } from "@mui/icons-material";
 
 type UserProfileDialogProps = {
@@ -27,6 +27,7 @@ export default function UserProfileDialog({
   const handleClose = () => {
     setOpen(false);
   };
+
   return (
     <React.Fragment>
       <MenuItem onClick={handleOpen}>{label || "View Profile"}</MenuItem>
@@ -51,7 +52,7 @@ export default function UserProfileDialog({
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          <div dangerouslySetInnerHTML={{ __html: description || "" }}></div>
+          <Typography>{description}</Typography>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Close</Button>
