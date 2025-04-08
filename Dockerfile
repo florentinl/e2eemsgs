@@ -7,7 +7,7 @@ RUN cargo install maturin
 COPY backend/agepy .
 RUN maturin build --release -i python3.12
 
-FROM python:3.12 AS backend_builder
+FROM python:3.12-slim AS backend_builder
 WORKDIR /app
 
 COPY backend .

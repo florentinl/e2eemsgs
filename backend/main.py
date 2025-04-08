@@ -5,9 +5,11 @@ from api import router
 from api.messaging import create_stream
 from api.session import AuthMiddleware
 from config import ENVIRONMENT, FRONTEND_DIST_DIR
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from models import create_db_and_tables
+from starlette.exceptions import HTTPException as StarletteHTTPException
+from starlette.types import Scope
 
 logger = logging.getLogger("uvicorn")
 
@@ -23,8 +25,21 @@ async def lifespan(_: FastAPI):
 app = FastAPI(lifespan=lifespan)
 app.include_router(router)
 app.add_middleware(middleware_class=AuthMiddleware)
+
+
+class SPAStaticFiles(StaticFiles):
+    async def get_response(self, path: str, scope: Scope):
+        try:
+            return await super().get_response(path, scope)
+        except (HTTPException, StarletteHTTPException) as ex:
+            if ex.status_code == 404:
+                return await super().get_response("index.html", scope)
+            else:
+                raise ex
+
+
 if ENVIRONMENT == "prod":
-    app.mount("/", StaticFiles(directory=FRONTEND_DIST_DIR, html=True))
+    app.mount("/", SPAStaticFiles(directory=FRONTEND_DIST_DIR, html=True))
 
 if __name__ == "__main__":
     import json
