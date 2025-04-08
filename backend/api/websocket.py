@@ -42,7 +42,7 @@ class NatsNotifications(BaseModel):
 @router.websocket("/")
 async def websocket_endpoint(ws: WebSocket):
     match check_cookie(ws):
-        case int(user_id):
+        case User() as user:
             pass
         case jwt.InvalidTokenError():
             await ws.accept()
@@ -50,13 +50,13 @@ async def websocket_endpoint(ws: WebSocket):
             return
 
     await ws.accept()
-    consumer = await setup_consumer(user_id, ws)
+    consumer = await setup_consumer(user.id, ws)
 
     while True:
         try:
             _ = await ws.receive_bytes()
             logger.warning(
-                "User %s sent unexpected data through the websocket", user_id
+                "User %s sent unexpected data through the websocket", user.id
             )
         except WebSocketDisconnect as e:
             logger.info("Client disconnected, code: %s, reason: %s", e.code, e.reason)
@@ -88,14 +88,14 @@ def message_handler_builder(ws: WebSocket, consumer: NATSMultiSubjectConsumer):
     return message_handler
 
 
-async def setup_consumer(uid: int, ws: WebSocket) -> NATSMultiSubjectConsumer:
+async def setup_consumer(uid: int | None, ws: WebSocket) -> NATSMultiSubjectConsumer:
     # Get the followed groups from the database instead:
     with Session(engine) as session:
         user = session.exec(select(User).where(User.id == uid)).one()
         groups = user.groups
 
     subjects = list(map(lambda g: f"{STREAM_NAME}.groups.{g.group_id}", groups))
-    subjects.append(f"chat.users.{uid}")  # Personal subject for system messages
+    subjects.append(f"chat.users.{user.id}")  # Personal subject for system messages
 
     consumer = NATSMultiSubjectConsumer()
     await consumer.init(subjects, message_handler_builder(ws, consumer))

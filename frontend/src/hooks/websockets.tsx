@@ -15,39 +15,37 @@ export const useWebSocket = () => {
   const [groups, setGroups] = useState<Groups>(new Map());
   const [isConnected, setIsConnected] = useState(false);
 
+  const refetchGroupsAndMessages = async () => {
+    fetchGroups().then((groupMap) => {
+      if (!groupMap) return;
+      fetchMessages().then((messages) => {
+        if (!messages) return;
+        for (const message of messages) {
+          const group = groupMap.get(message.message.group_id);
+          if (!group) continue;
+
+          const decrypted = sym_decrypt(
+            {
+              nonce: message.message.nonce,
+              message: message.message.content,
+            },
+            group.symmetricKey
+          );
+
+          group.messages.set(message.message.id!, {
+            id: message.message.id!,
+            sender_name: message.sender_name,
+            content: decrypted,
+          });
+        }
+        setGroups(groupMap);
+      });
+    });
+  };
+
   useEffect(() => {
     // Initialize group state
-    fetchGroups()
-      .then((groupMap) => {
-        if (groupMap) setGroups(groupMap);
-      })
-      .then(() => {
-        fetchMessages().then((messages) => {
-          if (!messages) return;
-          setGroups((groups) => {
-            const newGroups = new Map(groups);
-            for (const message of messages) {
-              const group = newGroups.get(message.message.group_id);
-              if (!group) continue;
-
-              const decrypted = sym_decrypt(
-                {
-                  nonce: message.message.nonce,
-                  message: message.message.content,
-                },
-                group.symmetricKey
-              );
-
-              group.messages.set(message.message.id!, {
-                id: message.message.id!,
-                sender_name: message.sender_name,
-                content: decrypted,
-              });
-            }
-            return newGroups;
-          });
-        });
-      });
+    refetchGroupsAndMessages();
 
     // Function to create a WebSocket connection
     const connectWebSocket = () => {
@@ -62,9 +60,7 @@ export const useWebSocket = () => {
         const notification = JSON.parse(event.data) as Notification;
         if (notification.type == "joinedGroupNotification") {
           console.log("Received message:", notification);
-          fetchGroups().then((groupMap) => {
-            if (groupMap) setGroups(groupMap);
-          });
+          refetchGroupsAndMessages();
         }
         if (notification.type == "messageNotification") {
           console.log("Received message:", notification);

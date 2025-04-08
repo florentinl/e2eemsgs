@@ -27,12 +27,21 @@ def get_jwt(user_id: int) -> str:
     return jwt.encode(payload=payload, key=JWT_SECRET, algorithm=JWT_ALGORITHM)  # type: ignore
 
 
-def check_cookie(request: Request | WebSocket) -> int | jwt.InvalidTokenError:
+def check_cookie(request: Request | WebSocket) -> User | jwt.InvalidTokenError:
     cookie = request.cookies.get("access_token")
     if cookie is None:
         return jwt.InvalidTokenError()
 
-    return check_jwt(cookie)
+    match check_jwt(cookie):
+        case int(uid):
+            with Session(engine) as session:
+                user = session.exec(select(User).where(User.id == uid)).one_or_none()
+                if user is None:
+                    return jwt.InvalidTokenError()
+
+            return user
+        case jwt.InvalidTokenError() as e:
+            return e
 
 
 def check_jwt(token: str) -> int | jwt.InvalidTokenError:
@@ -60,8 +69,8 @@ class AuthMiddleware(BaseHTTPMiddleware):
             return response
 
         match check_cookie(request):
-            case int(i):
-                request.state.uid = i
+            case User() as user:
+                request.state.uid = user.id
                 return await call_next(request)
             case jwt.InvalidTokenError():
                 return JSONResponse(
