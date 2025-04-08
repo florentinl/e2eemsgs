@@ -2,7 +2,7 @@ import logging
 from typing import List, Literal
 
 from fastapi import APIRouter, HTTPException, Request
-from models import Group, GroupMember, engine
+from models import Group, GroupMember, User, engine
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
@@ -129,6 +129,18 @@ def handle_get_user_groups(req: Request) -> OwnGroupsResponse:
             )
 
         return OwnGroupsResponse(groups=groups)
+
+
+@router.get("/users")
+def handle_get_group_users(req: Request, group_id: int) -> list[User]:
+    uid = req.state.uid
+    if not is_member(uid, group_id):
+        raise HTTPException(status_code=404, detail="Group does not exist")
+
+    with Session(engine) as session:
+        group = session.exec(select(Group).where(Group.id == group_id)).one()
+        users = list(map(lambda m: m.user, group.members))
+        return users  # type: ignore
 
 
 def is_member(user_id: int, group_id: int) -> bool:

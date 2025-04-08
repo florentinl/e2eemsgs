@@ -1,31 +1,29 @@
-import { Box, IconButton, Typography, AppBar, Toolbar } from "@mui/material";
-import { ArrowBack } from "@mui/icons-material";
+import { Box, Typography, AppBar, Toolbar } from "@mui/material";
 import AddUserDialog from "./AddUserDialog";
+import GroupMemberMenu from "./GroupMembersMenu";
 
 type ChatTopBarProps = {
   groupName: string; // The name of the currently selected group
-  onBack: () => void; // Callback for back button (if needed)
+  groupId: number;
   onAddUser: (username: string) => Promise<void>; // Callback for adding user
 };
 
 export default function ChatTopBar({
   groupName,
-  onBack,
   onAddUser,
+  groupId,
 }: ChatTopBarProps) {
   return (
     <AppBar position="static">
       <Toolbar sx={{ display: "flex", justifyContent: "space-between" }}>
         <Box sx={{ display: "flex", alignItems: "center" }}>
-          <IconButton edge="start" color="inherit" onClick={onBack}>
-            <ArrowBack />
-          </IconButton>
           <Typography variant="h6" color="inherit">
             {groupName}
           </Typography>
         </Box>
-        <Box>
+        <Box display={"flex"}>
           <AddUserDialog onAddUser={onAddUser} groupName={groupName} />
+          <GroupMemberMenu group_id={groupId} />
         </Box>
       </Toolbar>
     </AppBar>
