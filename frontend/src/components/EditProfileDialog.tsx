@@ -70,9 +70,10 @@ export default function EditProfileDialog({
         </DialogContent>
         <DialogActions>
           <Button
-            onClick={() =>
-              handleEditProfile(profile.description, profile.socialLink)
-            }
+            onClick={() => {
+              handleEditProfile(profile.description, profile.socialLink);
+              handleClose();
+            }}
           >
             Edit
           </Button>

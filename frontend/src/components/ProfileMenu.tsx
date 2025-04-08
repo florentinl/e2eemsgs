@@ -10,6 +10,8 @@ import {
 } from "../api-client";
 import UserProfileDialog from "./UserProfileDialog";
 import EditProfileDialog from "./EditProfileDialog";
+import { logout } from "../lib/auth";
+import { useNavigate } from "@tanstack/react-router";
 
 export default function ProfileMenu() {
   const [anchorEl, setAnchorEl] = React.useState<null | HTMLElement>(null);
@@ -28,6 +30,8 @@ export default function ProfileMenu() {
   const [socialLink, setSocialLink] = React.useState<undefined | null | string>(
     undefined
   );
+
+  const navigate = useNavigate();
 
   React.useEffect(() => {
     whoamiApiSessionWhoamiGet().then((response) => {
@@ -87,7 +91,13 @@ export default function ProfileMenu() {
           initialSocialLink={socialLink}
           handleEditProfile={handleEditProfile}
         />
-        <MenuItem>Logout</MenuItem>
+        <MenuItem
+          onClick={() => {
+            logout(navigate);
+          }}
+        >
+          Logout
+        </MenuItem>
       </Menu>
     </div>
   );
