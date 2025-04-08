@@ -98,7 +98,7 @@ def answer(answer: Challenge, response: Response) -> User:
             if user.id is not None:
                 jwt = get_jwt(user.id)
                 response.set_cookie(
-                    key="access_token", value=jwt, httponly=True
+                    key="access_token", value=jwt, httponly=True, samesite="strict"
                 )  # set HttpOnly cookie in response
                 return user
         raise AuthFailed()
