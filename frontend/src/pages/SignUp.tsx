@@ -79,7 +79,7 @@ const SignUp = () => {
 
   const onLoginSuccess = (msg: string) => {
     setDisableButton(true);
-    setTimeout(() => navigate({ to: "/" }), 500);
+    setTimeout(() => navigate({ to: "/" }), 1000);
     showSuccess(msg);
   };
 
