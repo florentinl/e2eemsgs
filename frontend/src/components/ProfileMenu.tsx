@@ -24,12 +24,8 @@ export default function ProfileMenu() {
   };
 
   const [username, setUsername] = React.useState<null | string>(null);
-  const [description, setDescription] = React.useState<
-    undefined | null | string
-  >(undefined);
-  const [socialLink, setSocialLink] = React.useState<undefined | null | string>(
-    undefined
-  );
+  const [description, setDescription] = React.useState<string>();
+  const [socialLink, setSocialLink] = React.useState<string>();
 
   const navigate = useNavigate();
 
@@ -40,8 +36,8 @@ export default function ProfileMenu() {
         return;
       }
       setUsername(response.data.username);
-      setDescription(response.data.description);
-      setSocialLink(response.data.social_link);
+      setDescription(response.data.description ?? undefined);
+      setSocialLink(response.data.social_link ?? undefined);
     });
   }, []);
 
@@ -57,8 +53,8 @@ export default function ProfileMenu() {
         return;
       }
       setUsername(response.data.username);
-      setDescription(response.data.description);
-      setSocialLink(response.data.social_link);
+      setDescription(response.data.description ?? undefined);
+      setSocialLink(response.data.social_link ?? undefined);
       return;
     });
   };
@@ -82,7 +78,7 @@ export default function ProfileMenu() {
       >
         <ListSubheader>{username}</ListSubheader>
         <UserProfileDialog
-          username={username}
+          username={username ?? undefined}
           description={description}
           socialLink={socialLink}
         />

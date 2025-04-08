@@ -4,16 +4,18 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import { Box, IconButton, MenuItem, Typography } from "@mui/material";
+import { Box, IconButton, MenuItem } from "@mui/material";
 import { Close, Link } from "@mui/icons-material";
 
 type UserProfileDialogProps = {
-  username: string | null;
+  label?: string;
+  username?: string;
   description?: string;
   socialLink?: string;
 };
 
 export default function UserProfileDialog({
+  label,
   username,
   description,
   socialLink,
@@ -27,7 +29,7 @@ export default function UserProfileDialog({
   };
   return (
     <React.Fragment>
-      <MenuItem onClick={handleOpen}>View Profile</MenuItem>
+      <MenuItem onClick={handleOpen}>{label || "View Profile"}</MenuItem>
       <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
         <DialogTitle
           sx={{
@@ -49,26 +51,12 @@ export default function UserProfileDialog({
           </IconButton>
         </DialogTitle>
         <DialogContent dividers>
-          <Typography variant="body1" sx={{ mb: 2 }}>
-            {description}
-          </Typography>
+          <div dangerouslySetInnerHTML={{ __html: description || "" }}></div>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Close</Button>
         </DialogActions>
       </Dialog>
-      {/* <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
-        <DialogTitle align="center">
-          <Typography variant="h4">{username}</Typography>
-        </DialogTitle>
-        <DialogContent>
-          <Typography variant="caption">Bio</Typography>
-          <Typography>{description}</Typography>
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={handleClose}>Close</Button>
-        </DialogActions>
-      </Dialog> */}
     </React.Fragment>
   );
 }

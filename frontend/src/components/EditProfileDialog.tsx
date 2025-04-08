@@ -49,6 +49,7 @@ export default function EditProfileDialog({
         <DialogContent>
           <TextField
             fullWidth
+            multiline
             label="Description"
             name="description"
             margin="normal"
