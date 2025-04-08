@@ -102,3 +102,8 @@ def answer(answer: Challenge, response: Response) -> User:
                 )  # set HttpOnly cookie in response
                 return user
         raise AuthFailed()
+
+
+@router.post("/logout")
+def logout(response: Response):
+    response.delete_cookie(key="access_token")

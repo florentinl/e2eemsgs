@@ -173,6 +173,20 @@ export type AnswerApiAuthLoginAnswerPostResponses = {
 
 export type AnswerApiAuthLoginAnswerPostResponse = AnswerApiAuthLoginAnswerPostResponses[keyof AnswerApiAuthLoginAnswerPostResponses];
 
+export type LogoutApiAuthLogoutPostData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/auth/logout';
+};
+
+export type LogoutApiAuthLogoutPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: unknown;
+};
+
 export type HandleCreateGroupApiGroupsCreatePostData = {
     body: CreateGroupRequest;
     path?: never;

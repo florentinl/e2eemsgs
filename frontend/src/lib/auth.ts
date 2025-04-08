@@ -2,7 +2,9 @@ import { asym_decrypt, derive_key_pair } from "argon2wasm";
 import {
   answerApiAuthLoginAnswerPost,
   challengeApiAuthLoginChallengePost,
+  logoutApiAuthLogoutPost,
 } from "../api-client";
+import type { UseNavigateResult } from "@tanstack/react-router";
 
 export const sendLogin = async (
   username: string,
@@ -68,5 +70,21 @@ export const sendLogin = async (
       onSuccess(
         "Successfully logged in with username " + response.data.username
       );
+  }
+};
+
+export const logout = async (navigate: UseNavigateResult<string>) => {
+  // sendLogout
+  {
+    let response = await logoutApiAuthLogoutPost({});
+
+    if (response.error) {
+      return;
+    }
+
+    localStorage.removeItem("publicKey");
+    localStorage.removeItem("privateKey");
+    navigate({ to: "/login" });
+    return;
   }
 };
