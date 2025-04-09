@@ -41,11 +41,20 @@ class GroupMember(SQLModel, table=True):
     group: Optional[Group] = Relationship(back_populates="members")
 
 
+class File(SQLModel, table=True):
+    message_id: int = Field(foreign_key="message.id", primary_key=True)
+    path: str
+    size: int
+    pretty_name: str
+
+
 class Message(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     content: str
+    has_attachment: bool
     nonce: str
     sender_id: int = Field(foreign_key="user.id")
     group_id: int = Field(foreign_key="group.id")
     sender: Optional[User] = Relationship()
     group: Optional[Group] = Relationship(back_populates="messages")
+    attachment: Optional[File] = Relationship(back_populates="message")
