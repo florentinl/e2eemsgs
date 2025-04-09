@@ -4,6 +4,7 @@ from typing import Annotated
 
 import fastapi
 from fastapi import APIRouter, Form, HTTPException, Request, UploadFile
+from fastapi.responses import FileResponse
 from models import File, GroupMember, Message, User, engine
 from pydantic import BaseModel
 from sqlmodel import Session, select
@@ -21,6 +22,10 @@ class GroupMessageRequest(BaseModel):
     nonce: str
     group_id: int
     has_attachment: bool
+
+
+class DownloadFileRequest(BaseModel):
+    message_id: int
 
 
 @router.post("/")
@@ -103,6 +108,7 @@ async def get_group_messages(request: Request) -> list[MessageNotification]:
                                     path=m.attachment.path,
                                     size=m.attachment.size,
                                     pretty_name=m.attachment.pretty_name,
+                                    nonce=m.attachment.nonce,
                                 ),
                                 nonce=m.nonce,
                                 sender_id=m.sender_id,
@@ -120,9 +126,10 @@ async def get_group_messages(request: Request) -> list[MessageNotification]:
 async def upload(
     req: Request,
     file: Annotated[UploadFile, fastapi.File()],
+    file_nonce: Annotated[str, Form()],
     group_id: Annotated[int, Form()],
     message: Annotated[str, Form()],
-    nonce: Annotated[str, Form()],
+    message_nonce: Annotated[str, Form()],
 ):
     user_id: int = req.state.uid
 
@@ -136,7 +143,7 @@ async def upload(
         ).one_or_none()
 
     if membership is None:
-        HTTPException(status_code=403, detail="Unauthorized")
+        raise HTTPException(status_code=403, detail="Unauthorized")
 
     js = await get_js()
 
@@ -162,7 +169,7 @@ async def upload(
 
     new_message = Message(
         content=message,
-        nonce=nonce,
+        nonce=message_nonce,
         group_id=group_id,
         has_attachment=True,
         sender_id=user_id,
@@ -182,6 +189,7 @@ async def upload(
         path=path,
         size=size,
         pretty_name=pretty_name,
+        nonce=file_nonce,
     )
 
     # Persist file
@@ -198,7 +206,10 @@ async def upload(
         id=new_message.id,
         content=new_message.content,
         attachment=FileMetadata(
-            size=new_file.size, path=new_file.path, pretty_name=new_file.pretty_name
+            size=new_file.size,
+            path=new_file.path,
+            pretty_name=new_file.pretty_name,
+            nonce=file_nonce,
         ),
         nonce=new_message.nonce,
         sender_id=new_message.sender_id,
@@ -214,4 +225,44 @@ async def upload(
         subject=subject,
         payload=group_message.model_dump_json().encode(),
         stream=STREAM_NAME,
+    )
+
+
+@router.post("/download")
+async def download(req: Request, body: DownloadFileRequest):
+    user_id: int = req.state.uid
+
+    # Get message group
+    with Session(engine) as session:
+        message = session.exec(
+            select(Message).where(Message.id == body.message_id)
+        ).one_or_none()
+
+    if message is None:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    # Check if user can download message
+    membership = session.exec(
+        select(GroupMember).where(
+            GroupMember.user_id == user_id,
+            GroupMember.group_id == message.group_id,
+        )
+    ).one_or_none()
+
+    if membership is None:
+        raise HTTPException(status_code=403, detail="Unauthorized")
+
+    # Get file path
+    with Session(engine) as session:
+        file = session.exec(
+            select(File).where(
+                File.message_id == body.message_id,
+            )
+        ).one_or_none()
+
+    if file is None:
+        raise HTTPException(status_code=404, detail="Not found")
+
+    return FileResponse(
+        file.path, media_type="application/octet-stream", filename=file.pretty_name
     )

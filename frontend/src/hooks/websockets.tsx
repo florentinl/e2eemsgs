@@ -35,7 +35,14 @@ export const useWebSocket = () => {
           group.messages.set(message.message.id!, {
             id: message.message.id!,
             sender_name: message.sender_name,
-            content: decrypted,
+            content: {
+              id: message.message.id!,
+              content: decrypted,
+              attachment: null,
+              nonce: message.message.nonce,
+              sender_id: message.message.sender_id,
+              group_id: message.message.group_id,
+            },
           });
         }
         setGroups(groupMap);
@@ -81,7 +88,14 @@ export const useWebSocket = () => {
             const message: Message = {
               id: msg.id!,
               sender_name: notification.sender_name,
-              content: clearMessage,
+              content: {
+                id: msg.id!,
+                content: clearMessage,
+                attachment: msg.attachment,
+                nonce: msg.nonce,
+                sender_id: msg.sender_id,
+                group_id: msg.group_id,
+              },
             };
 
             group.messages.set(message.id, message);

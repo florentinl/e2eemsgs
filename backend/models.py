@@ -46,6 +46,9 @@ class File(SQLModel, table=True):
     path: str
     size: int
     pretty_name: str
+    nonce: str
+    # Here as a list because otherwise it wouldn't let me run
+    messages: List["Message"] = Relationship(back_populates="attachment")
 
 
 class Message(SQLModel, table=True):
@@ -57,4 +60,5 @@ class Message(SQLModel, table=True):
     group_id: int = Field(foreign_key="group.id")
     sender: Optional[User] = Relationship()
     group: Optional[Group] = Relationship(back_populates="messages")
-    attachment: Optional[File] = Relationship(back_populates="message")
+    # Here for convenience, not strictly needed
+    attachment: Optional[File] = Relationship(back_populates="messages")

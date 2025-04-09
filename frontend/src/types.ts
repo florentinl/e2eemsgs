@@ -1,7 +1,4 @@
-import type {
-  Group as ApiGroup,
-  Message as ApiMessage,
-} from "./api-client/types.gen";
+import type { Group as ApiGroup, MessageContent } from "./api-client/types.gen";
 
 export type Groups = Map<number, Group>;
 
@@ -23,7 +20,7 @@ export type User = {
 export type Message = {
   id: number;
   sender_name: string;
-  content: string;
+  content: MessageContent;
 };
 
 export type JoinGroupNotification = {
@@ -38,7 +35,7 @@ export type QuitGroupNotification = {
 
 export type MessageNotification = {
   type: "messageNotification";
-  message: ApiMessage;
+  message: MessageContent;
   sender_name: string;
 };
 
