@@ -97,10 +97,7 @@ export default function MessageInput({
                 </IconButton>
                 <IconButton
                   onClick={handleSend}
-                  disabled={
-                    (message.trim() === "" || message.length > maxLength) &&
-                    file == null
-                  }
+                  disabled={message.trim() === "" || message.length > maxLength}
                 >
                   <Send />
                 </IconButton>
