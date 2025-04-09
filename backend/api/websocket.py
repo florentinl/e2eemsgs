@@ -4,10 +4,10 @@ from typing import Literal
 
 import jwt
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
-from sqlmodel import Session, select
-from models import Group, Message, User, engine
+from models import Group, User, engine
 from nats.aio.msg import Msg
 from pydantic import BaseModel, Field
+from sqlmodel import Session, select
 
 from api.messaging import STREAM_NAME, NATSMultiSubjectConsumer
 from api.session import check_cookie
@@ -17,9 +17,24 @@ logger = logging.getLogger("uvicorn")
 router = APIRouter(prefix="/ws")
 
 
+class FileMetadata(BaseModel):
+    path: str
+    size: int
+    pretty_name: str
+
+
+class MessageContent(BaseModel):
+    id: int | None
+    content: str
+    attachment: None | FileMetadata
+    nonce: str
+    sender_id: int
+    group_id: int
+
+
 class MessageNotification(BaseModel):
     type: Literal["messageNotification"] = Field(default="messageNotification")
-    message: Message
+    message: MessageContent
     sender_name: str
 
 
