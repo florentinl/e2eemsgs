@@ -9,8 +9,9 @@ import LoadingPage from "./LoadingPage";
 import {
   asym_encrypt,
   generate_sym_key,
-  sym_decrypt,
+  sym_decrypt_bytes,
   sym_encrypt,
+  sym_encrypt_bytes,
 } from "argon2wasm";
 import {
   downloadApiMessagesDownloadPost,
@@ -157,9 +158,9 @@ const ChatPage: React.FC<{}> = () => {
       });
     } else {
       file
-        .text()
+        .bytes()
         .then((content) => {
-          return sym_encrypt(content, key);
+          return sym_encrypt_bytes(content, key);
         })
         .then((encryptedFile) => {
           const encrFile = new File([encryptedFile.message], file.name);
@@ -192,7 +193,7 @@ const ChatPage: React.FC<{}> = () => {
         if (msg.content.attachment == null) {
           return;
         } else {
-          const clearFile = sym_decrypt(
+          const clearFile = sym_decrypt_bytes(
             {
               nonce: msg.content.attachment.nonce,
               message: stringContent,
