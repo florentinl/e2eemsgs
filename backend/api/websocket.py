@@ -21,6 +21,7 @@ class FileMetadata(BaseModel):
     path: str
     size: int
     pretty_name: str
+    nonce: str
 
 
 class MessageContent(BaseModel):

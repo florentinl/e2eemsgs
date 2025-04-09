@@ -59,13 +59,14 @@ pub fn sym_decrypt_bytes(
     #[wasm_bindgen(unchecked_param_type = "EncryptedMessage")] message: JsValue,
     key: &str,
 ) -> Result<Vec<u8>, JsError> {
-    let key = key_from_str(&key)?;
+    let key = key_from_str(key)?;
 
     let message: EncryptedMessage =
         serde_wasm_bindgen::from_value(message).map_err(|e| JsError::new(&e.to_string()))?;
 
     let cipher_text = BASE64_STANDARD.decode(message.message)?;
     let nonce = BASE64_STANDARD.decode(message.nonce)?;
+
     let nonce = nonce.as_slice().try_into()?;
 
     let cipher = Aes256Gcm::new(&key);

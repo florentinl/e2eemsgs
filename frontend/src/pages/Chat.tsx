@@ -12,6 +12,7 @@ import {
   handleCreateGroupApiGroupsCreatePost,
   handleGetUserByUsernameApiUsersUsernameGet,
   sendMessageApiMessagesPost,
+  uploadApiMessagesUploadPost,
   whoamiApiSessionWhoamiGet,
   type User,
 } from "../api-client";
@@ -26,8 +27,6 @@ const ChatPage: React.FC<{}> = () => {
   const messages = Array.from(
     groups.get(groupId ?? 0)?.messages.values() ?? []
   );
-
-  console.log(messages);
 
   useEffect(() => {
     whoamiApiSessionWhoamiGet().then(({ data }) => {
@@ -129,21 +128,34 @@ const ChatPage: React.FC<{}> = () => {
     }
   };
 
-  const handleSendMessage = (message: string) => {
+  const handleSendMessage = (message: string, file: File | null) => {
     if (groupId === undefined) return;
 
     const key = groups.get(groupId)?.symmetricKey!;
 
     const encryptedMessage = sym_encrypt(message, key);
 
-    console.log(encryptedMessage);
-    sendMessageApiMessagesPost({
-      body: {
-        content: encryptedMessage.message,
-        nonce: encryptedMessage.nonce,
-        group_id: groupId,
-      },
-    });
+    if (file == null) {
+      console.log(encryptedMessage);
+      sendMessageApiMessagesPost({
+        body: {
+          content: encryptedMessage.message,
+          nonce: encryptedMessage.nonce,
+          group_id: groupId,
+          has_attachment: false,
+        },
+      });
+    } else {
+      uploadApiMessagesUploadPost({
+        body: {
+          file: file,
+          group_id: groupId,
+          message: encryptedMessage.message,
+          message_nonce: encryptedMessage.nonce,
+          file_nonce: "",
+        },
+      });
+    }
   };
 
   return !isConnected ? (
