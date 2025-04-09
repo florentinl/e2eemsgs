@@ -6,8 +6,14 @@ import MessageInput from "../components/MessageInput";
 import MessageDisplay from "../components/Message";
 import { useWebSocket } from "../hooks/websockets";
 import LoadingPage from "./LoadingPage";
-import { asym_encrypt, generate_sym_key, sym_encrypt } from "argon2wasm";
 import {
+  asym_encrypt,
+  generate_sym_key,
+  sym_decrypt,
+  sym_encrypt,
+} from "argon2wasm";
+import {
+  downloadApiMessagesDownloadPost,
   handleAddGroupUserApiGroupsAddPost,
   handleCreateGroupApiGroupsCreatePost,
   handleGetUserByUsernameApiUsersUsernameGet,
@@ -16,6 +22,7 @@ import {
   whoamiApiSessionWhoamiGet,
   type User,
 } from "../api-client";
+import type { Message } from "../types";
 
 const ChatPage: React.FC<{}> = () => {
   const { groups, isConnected, setGroups } = useWebSocket();
@@ -133,7 +140,10 @@ const ChatPage: React.FC<{}> = () => {
 
     const key = groups.get(groupId)?.symmetricKey!;
 
-    const encryptedMessage = sym_encrypt(message, key);
+    const encryptedMessage =
+      message.length == 0
+        ? { message: "", nonce: "" }
+        : sym_encrypt(message, key);
 
     if (file == null) {
       console.log(encryptedMessage);
@@ -146,16 +156,62 @@ const ChatPage: React.FC<{}> = () => {
         },
       });
     } else {
-      uploadApiMessagesUploadPost({
-        body: {
-          file: file,
-          group_id: groupId,
-          message: encryptedMessage.message,
-          message_nonce: encryptedMessage.nonce,
-          file_nonce: "",
-        },
-      });
+      file
+        .text()
+        .then((content) => {
+          return sym_encrypt(content, key);
+        })
+        .then((encryptedFile) => {
+          const encrFile = new File([encryptedFile.message], file.name);
+          uploadApiMessagesUploadPost({
+            body: {
+              file: encrFile,
+              group_id: groupId,
+              message: encryptedMessage.message,
+              message_nonce: encryptedMessage.nonce,
+              file_nonce: encryptedFile.nonce,
+            },
+          });
+        });
     }
+  };
+
+  const handleDownload = (msg: Message) => {
+    if (groupId === undefined) return;
+    const key = groups.get(groupId)?.symmetricKey!;
+
+    downloadApiMessagesDownloadPost({
+      body: {
+        message_id: msg.id,
+      },
+    })
+      .then((response) => {
+        return (response.data as Blob).text();
+      })
+      .then((stringContent) => {
+        if (msg.content.attachment == null) {
+          return;
+        } else {
+          const clearFile = sym_decrypt(
+            {
+              nonce: msg.content.attachment.nonce,
+              message: stringContent,
+            },
+            key
+          );
+
+          var url = window.URL.createObjectURL(new Blob([clearFile]));
+          var a = document.createElement("a");
+          a.href = url;
+          a.download =
+            msg.content.attachment == null
+              ? "new_file"
+              : msg.content.attachment.pretty_name;
+          document.body.appendChild(a); // append the element to the dom
+          a.click();
+          a.remove();
+        }
+      });
   };
 
   return !isConnected ? (
@@ -203,6 +259,7 @@ const ChatPage: React.FC<{}> = () => {
                 key={message.id}
                 msg={message}
                 self={user!}
+                handleDownload={handleDownload}
               ></MessageDisplay>
             ))}
           </Box>
