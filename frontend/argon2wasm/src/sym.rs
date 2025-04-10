@@ -1,5 +1,5 @@
 use aes_gcm::{
-    AeadCore as _, Aes256Gcm, Key, KeyInit as _,
+    Aes256Gcm, Key, KeyInit as _,
     aead::{Aead, OsRng},
 };
 use base64::{Engine as _, prelude::BASE64_STANDARD};
@@ -37,9 +37,10 @@ pub fn sym_encrypt_bytes(data: &[u8], key: &str) -> Result<JsValue, JsError> {
     let key = key_from_str(key)?;
 
     let cipher = Aes256Gcm::new(&key);
-    let nonce = Aes256Gcm::generate_nonce(&mut OsRng);
+    let nonce = vec![42u8; 12];
+    let nonce = nonce.as_slice().try_into()?;
     let cipher_text = cipher
-        .encrypt(&nonce, data)
+        .encrypt(nonce, data)
         .map_err(|e| JsError::new(&e.to_string()))?;
 
     serde_wasm_bindgen::to_value(&EncryptedMessage {
