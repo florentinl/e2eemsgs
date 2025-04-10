@@ -1,14 +1,14 @@
 import logging
 import uuid
-from typing import Annotated
+from typing import Annotated, Any, Generator
 
 import fastapi
 from fastapi import APIRouter, Form, HTTPException, Request, UploadFile
-from fastapi.responses import FileResponse
 from models import File, GroupMember, Message, User, engine
 from notifications import STREAM_NAME, get_js
 from pydantic import BaseModel
 from sqlmodel import Session, select
+from starlette.responses import StreamingResponse
 
 from api.websocket import FileMetadata, MessageContent, MessageNotification
 
@@ -25,7 +25,7 @@ class GroupMessageRequest(BaseModel):
 
 
 class DownloadFileRequest(BaseModel):
-    message_id: int
+    file_path: str
 
 
 @router.post("/")
@@ -230,39 +230,14 @@ async def upload(
 
 @router.post("/download")
 async def download(req: Request, body: DownloadFileRequest):
-    user_id: int = req.state.uid
+    def iterfile() -> Generator[Any, Any, Any]:
+        with open(body.file_path, mode="rb") as file_like:
+            yield from file_like
 
-    # Get message group
-    with Session(engine) as session:
-        message = session.exec(
-            select(Message).where(Message.id == body.message_id)
-        ).one_or_none()
-
-    if message is None:
-        raise HTTPException(status_code=403, detail="Unauthorized")
-
-    # Check if user can download message
-    membership = session.exec(
-        select(GroupMember).where(
-            GroupMember.user_id == user_id,
-            GroupMember.group_id == message.group_id,
-        )
-    ).one_or_none()
-
-    if membership is None:
-        raise HTTPException(status_code=403, detail="Unauthorized")
-
-    # Get file path
-    with Session(engine) as session:
-        file = session.exec(
-            select(File).where(
-                File.message_id == body.message_id,
-            )
-        ).one_or_none()
-
-    if file is None:
-        raise HTTPException(status_code=404, detail="Not found")
-
-    return FileResponse(
-        file.path, media_type="application/octet-stream", filename=file.pretty_name
+    return StreamingResponse(
+        iterfile(),
+        headers={
+            "Content-Disposition": 'attachment; filename="placeholder"',
+            "Content-Type": "application/octet-stream",
+        },
     )

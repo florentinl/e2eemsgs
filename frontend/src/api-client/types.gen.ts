@@ -24,7 +24,7 @@ export type CreateGroupRequest = {
 };
 
 export type DownloadFileRequest = {
-    message_id: number;
+    file_path: string;
 };
 
 export type EditProfileRequest = {

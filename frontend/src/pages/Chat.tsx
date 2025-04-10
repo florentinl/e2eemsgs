@@ -204,7 +204,7 @@ const ChatPage: React.FC<{}> = () => {
 
     const response = await downloadApiMessagesDownloadPost({
       body: {
-        message_id: msg.id,
+        file_path: msg.content.attachment.path,
       },
     })
       .then((response) => {
