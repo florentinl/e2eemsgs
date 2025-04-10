@@ -12,6 +12,8 @@ services:
       - JWT_SECRET=a_very_random_and_unguessable_secret
     volumes:
       - database:/db
+      - attachments:/app/files
 
 volumes:
   database:
+  attachments:
