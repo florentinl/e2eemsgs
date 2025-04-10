@@ -23,7 +23,7 @@ export default function GroupSidebar({
   };
 
   return (
-    <Paper sx={{ width: 240, height: "100vh", overflowY: "auto" }}>
+    <Paper sx={{ width: 240, height: "100svh", overflowY: "auto" }}>
       <ProfileMenu />
       <List>
         {Array.from(groups.keys()).map((groupId) => (

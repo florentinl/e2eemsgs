@@ -111,7 +111,7 @@ const SignUp = () => {
   return (
     <Box
       sx={{
-        height: "100vh",
+        height: "100svh",
         width: "100%",
         display: "flex",
         justifyContent: "center",

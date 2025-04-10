@@ -240,7 +240,13 @@ const ChatPage: React.FC<{}> = () => {
   return !isConnected ? (
     <LoadingPage />
   ) : (
-    <Box sx={{ display: "flex", flexDirection: "row", height: "100vh" }}>
+    <Box
+      sx={{
+        display: "flex",
+        flexDirection: "row",
+        height: "100svh",
+      }}
+    >
       {/* Sidebar */}
       <Box
         component="nav"
@@ -295,7 +301,7 @@ const ChatPage: React.FC<{}> = () => {
           display: "flex",
           flexDirection: "column",
           flex: 1,
-          height: "100vh",
+          height: "100svh",
         }}
       >
         {/* Top Bar */}
