@@ -156,7 +156,7 @@ const ChatPage: React.FC<{}> = () => {
     }
   };
 
-  const handleSendMessage = (message: string, file: File | null) => {
+  const handleSendMessage = async (message: string, file: File | null) => {
     if (groupId === undefined) return;
 
     const key = groups.get(groupId)?.symmetricKey!;
@@ -168,7 +168,7 @@ const ChatPage: React.FC<{}> = () => {
 
     if (file == null) {
       console.log(encryptedMessage);
-      sendMessageApiMessagesPost({
+      await sendMessageApiMessagesPost({
         body: {
           content: encryptedMessage.message,
           nonce: encryptedMessage.nonce,
@@ -182,9 +182,9 @@ const ChatPage: React.FC<{}> = () => {
         .then((content) => {
           return sym_encrypt_bytes(content, key);
         })
-        .then((encryptedFile) => {
+        .then(async (encryptedFile) => {
           const encrFile = new File([encryptedFile.message], file.name);
-          uploadApiMessagesUploadPost({
+          await uploadApiMessagesUploadPost({
             body: {
               file: encrFile,
               group_id: groupId,

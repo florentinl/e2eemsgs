@@ -6,11 +6,12 @@ import {
   InputAdornment,
   styled,
   Chip,
+  CircularProgress,
 } from "@mui/material";
 import { Send, AttachFile } from "@mui/icons-material";
 
 type MessageInputProps = {
-  onSend: (message: string, file: File | null) => void; // Callback function to send the message
+  onSend: (message: string, file: File | null) => Promise<void>; // Callback function to send the message
   maxLength: number; // Maximum character limit
   message: string;
   setMessage: (message: string) => void;
@@ -37,6 +38,7 @@ export default function MessageInput({
   const [error, setError] = useState<string>("");
 
   const [file, setFile] = useState<File | null>(null);
+  const [sending, setSending] = useState(false);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -60,7 +62,8 @@ export default function MessageInput({
 
   const handleSend = () => {
     if (message.length <= maxLength && message.trim() !== "") {
-      onSend(message, file);
+      setSending(true);
+      onSend(message, file).then(() => setSending(false));
       setMessage(""); // Clear input field after sending
       setFile(null); // Clear file after sending
     }
@@ -95,12 +98,18 @@ export default function MessageInput({
                     multiple
                   />
                 </IconButton>
-                <IconButton
-                  onClick={handleSend}
-                  disabled={message.trim() === "" || message.length > maxLength}
-                >
-                  <Send />
-                </IconButton>
+                {sending ? (
+                  <CircularProgress />
+                ) : (
+                  <IconButton
+                    onClick={handleSend}
+                    disabled={
+                      message.trim() === "" || message.length > maxLength
+                    }
+                  >
+                    <Send />
+                  </IconButton>
+                )}
               </InputAdornment>
             ),
             startAdornment: (
