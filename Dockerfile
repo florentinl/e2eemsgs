@@ -36,12 +36,13 @@ RUN wasm-pack build --target web
 FROM node:23 AS frontend_builder
 WORKDIR /app
 
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm install
 COPY frontend .
 COPY --from=argon2wasm_builder /app/pkg argon2wasm/pkg
 
 COPY --from=backend_builder /app/openapi.json /backend/openapi.json
 
-RUN npm install
 RUN npm run openapi-codegen
 RUN npm run build
 
