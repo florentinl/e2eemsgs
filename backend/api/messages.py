@@ -6,10 +6,10 @@ import fastapi
 from fastapi import APIRouter, Form, HTTPException, Request, UploadFile
 from fastapi.responses import FileResponse
 from models import File, GroupMember, Message, User, engine
+from notifications import STREAM_NAME, get_js
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
-from api.messaging import STREAM_NAME, get_js
 from api.websocket import FileMetadata, MessageContent, MessageNotification
 
 router = APIRouter(prefix="/messages")

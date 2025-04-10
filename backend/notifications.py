@@ -66,7 +66,6 @@ class NATSMultiSubjectConsumer:
         logger.info("CLEANING UP")
         await self.sub.unsubscribe()
         await self.js.delete_consumer(STREAM_NAME, self.ci.name)
-        pass
 
 
 async def get_js():

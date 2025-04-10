@@ -3,10 +3,10 @@ from typing import List, Literal
 
 from fastapi import APIRouter, HTTPException, Request
 from models import Group, GroupMember, User, engine
+from notifications import STREAM_NAME, get_js
 from pydantic import BaseModel
 from sqlmodel import Session, select
 
-from api.messaging import STREAM_NAME, get_js
 from api.websocket import JoinGroupNotification
 
 router = APIRouter(prefix="/groups")

@@ -9,7 +9,7 @@ from nats.aio.msg import Msg
 from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
-from api.messaging import STREAM_NAME, NATSMultiSubjectConsumer
+from notifications import STREAM_NAME, NATSMultiSubjectConsumer
 from api.session import check_cookie
 
 logger = logging.getLogger("uvicorn")

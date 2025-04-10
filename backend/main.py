@@ -2,12 +2,12 @@ import logging
 from contextlib import asynccontextmanager
 
 from api import router
-from api.messaging import create_stream
 from api.session import AuthMiddleware
 from config import ENVIRONMENT, FRONTEND_DIST_DIR
 from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from models import create_db_and_tables
+from notifications import create_stream
 from starlette.exceptions import HTTPException as StarletteHTTPException
 from starlette.types import Scope
 
