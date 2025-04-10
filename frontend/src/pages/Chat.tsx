@@ -178,9 +178,9 @@ const ChatPage: React.FC<{}> = () => {
       });
     } else {
       file
-        .bytes()
+        .arrayBuffer()
         .then((content) => {
-          return sym_encrypt_bytes(content, key);
+          return sym_encrypt_bytes(new Uint8Array(content), key);
         })
         .then(async (encryptedFile) => {
           const encrFile = new File([encryptedFile.message], file.name);
@@ -306,8 +306,8 @@ const ChatPage: React.FC<{}> = () => {
       >
         {/* Top Bar */}
         <ChatTopBar
-          groupName={(groupId && groups.get(groupId)?.name) || "Select a group"}
-          groupId={groupId}
+          group={(groupId && groups.get(groupId)) || null}
+          userId={user?.id || -1}
           onAddUser={handleAddUser}
           handleDrawerToggle={handleDrawerToggle}
         />

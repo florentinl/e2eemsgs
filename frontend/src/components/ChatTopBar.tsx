@@ -2,18 +2,19 @@ import { Box, Typography, AppBar, Toolbar, IconButton } from "@mui/material";
 import AddUserDialog from "./AddUserDialog";
 import GroupMemberMenu from "./GroupMembersMenu";
 import { Menu } from "@mui/icons-material";
+import type { Group } from "../types";
 
 type ChatTopBarProps = {
-  groupName: string; // The name of the currently selected group
-  groupId?: number;
+  group: Group | null;
+  userId: number;
   onAddUser?: (username: string) => Promise<void>; // Callback for adding user
   handleDrawerToggle: () => void;
 };
 
 export default function ChatTopBar({
-  groupName,
+  group,
+  userId,
   onAddUser,
-  groupId,
   handleDrawerToggle,
 }: ChatTopBarProps) {
   return (
@@ -30,13 +31,15 @@ export default function ChatTopBar({
         </IconButton>
         <Box sx={{ display: "flex", alignItems: "center" }}>
           <Typography variant="h6" color="inherit">
-            {groupName}
+            {group?.name || ""}
           </Typography>
         </Box>
-        {groupId && onAddUser && (
+        {group && onAddUser && (
           <Box display={"flex"}>
-            <AddUserDialog onAddUser={onAddUser} groupName={groupName} />
-            <GroupMemberMenu group_id={groupId} />
+            {group.ownerId == userId && (
+              <AddUserDialog onAddUser={onAddUser} groupName={group.name} />
+            )}
+            <GroupMemberMenu group_id={group.id || -1} />
           </Box>
         )}
       </Toolbar>

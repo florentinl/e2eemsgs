@@ -4,6 +4,7 @@ export type Groups = Map<number, Group>;
 
 export type Group = {
   id: number;
+  ownerId: number;
   name: string;
   symmetricKey: string;
   members: Set<User>;

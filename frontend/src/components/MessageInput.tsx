@@ -95,7 +95,6 @@ export default function MessageInput({
                   <VisuallyHiddenInput
                     type="file"
                     onChange={handleFileChange}
-                    multiple
                   />
                 </IconButton>
                 {sending ? (

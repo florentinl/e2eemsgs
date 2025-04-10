@@ -31,6 +31,7 @@ class GroupAddUserRequest(BaseModel):
 
 
 class OwnGroupInfo(BaseModel):
+    owner_id: int
     group_id: int
     group_name: str
     symmetric_key: str
@@ -122,6 +123,7 @@ def handle_get_user_groups(req: Request) -> OwnGroupsResponse:
             ).one()
             groups.append(
                 OwnGroupInfo(
+                    owner_id=group.owner_id,
                     group_id=membership.group_id,
                     group_name=group.name,
                     symmetric_key=membership.symmetric_key,

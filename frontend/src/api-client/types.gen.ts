@@ -97,6 +97,7 @@ export type MessageNotification = {
 };
 
 export type OwnGroupInfo = {
+    owner_id: number;
     group_id: number;
     group_name: string;
     symmetric_key: string;

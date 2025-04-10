@@ -23,6 +23,7 @@ export const fetchGroups = async () => {
     const decryptedGroupKey = asym_decrypt(group.symmetric_key, privateKey);
     groupMap.set(group.group_id, {
       id: group.group_id,
+      ownerId: group.owner_id,
       name: group.group_name,
       symmetricKey: decryptedGroupKey,
       members: new Set(),
