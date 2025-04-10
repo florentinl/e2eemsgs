@@ -3,6 +3,7 @@ from random import choice
 from string import ascii_letters, digits
 
 from agepy import asym_encrypt
+from config import SIGNUP_SECRET
 from fastapi import APIRouter, HTTPException, Response
 from models import Challenge, User, engine
 from pydantic import BaseModel, Field
@@ -44,7 +45,9 @@ class UserAlreadyExists(HTTPException):
 
 
 @router.post("/signup", responses={409: {"model": ExceptionModel}})
-def signup(user: User, response: Response) -> User:
+def signup(user: User, response: Response, signup_secret: str | None = None) -> User:
+    if SIGNUP_SECRET is not None and signup_secret != SIGNUP_SECRET:
+        raise HTTPException(status_code=403, detail="You need a secret to authenticate")
     with Session(engine) as session:
         session.add(user)
         try:

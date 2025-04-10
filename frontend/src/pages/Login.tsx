@@ -141,7 +141,9 @@ const Login = () => {
                   cursor: "pointer",
                 },
               }}
-              onClick={() => navigate({ to: "/signup" })}
+              onClick={() =>
+                navigate({ to: "/signup", search: { signup_secret: null } })
+              }
             >
               sign up here
             </Link>

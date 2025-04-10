@@ -36,9 +36,14 @@ const rootRoute = createRootRoute({
   ),
 });
 
-const signUpRoute = createRoute({
+export const signUpRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: "/signup",
+  validateSearch(search) {
+    return {
+      signup_secret: search.signup_secret as string | null,
+    };
+  },
   component: SignUp,
 });
 

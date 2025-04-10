@@ -124,7 +124,9 @@ export type ValidationError = {
 export type SignupApiAuthSignupPostData = {
     body: User;
     path?: never;
-    query?: never;
+    query: {
+        signup_secret: string | null;
+    };
     url: '/api/auth/signup';
 };
 

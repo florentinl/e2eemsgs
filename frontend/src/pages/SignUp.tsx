@@ -16,9 +16,11 @@ import InfoBox from "../components/InfoBox";
 import { signupApiAuthSignupPost } from "../api-client";
 import { useNavigate } from "@tanstack/react-router";
 import { sendLogin } from "../lib/auth";
+import { signUpRoute } from "../main";
 
 const SignUp = () => {
   const navigate = useNavigate();
+  const searchParams = signUpRoute.useSearch();
   const [credentials, setCredentials] = useState({
     username: "",
     password: "",
@@ -90,6 +92,9 @@ const SignUp = () => {
       body: {
         username: username,
         public_key: asymKeys.public_key,
+      },
+      query: {
+        signup_secret: searchParams.signup_secret,
       },
     });
 

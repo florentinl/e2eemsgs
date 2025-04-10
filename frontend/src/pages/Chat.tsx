@@ -24,9 +24,11 @@ import {
   type User,
 } from "../api-client";
 import type { Message } from "../types";
+import { useNavigate } from "@tanstack/react-router";
 
 const ChatPage: React.FC<{}> = () => {
   const { groups, isConnected, setGroups } = useWebSocket();
+  const navigate = useNavigate();
   const [groupId, setGroupId] = useState<number>();
   const [user, setUser] = useState<User>();
   const drawerWidth = 240;
@@ -59,6 +61,7 @@ const ChatPage: React.FC<{}> = () => {
   useEffect(() => {
     whoamiApiSessionWhoamiGet().then(({ data }) => {
       if (data) setUser(data);
+      else navigate({ to: "/login" });
     });
   }, []);
 

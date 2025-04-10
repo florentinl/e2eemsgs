@@ -36,7 +36,7 @@ class NATSMultiSubjectConsumer:
 
     async def _create_or_update_consumer(self):
         config = ConsumerConfig(
-            durable_name=self.identifier,
+            name=self.identifier,
             filter_subjects=list(self.subjects),
             deliver_subject=self.identifier,
         )

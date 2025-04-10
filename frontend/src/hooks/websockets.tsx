@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from "react";
 import type { Groups, Notification, Message } from "../types";
-import { useNavigate } from "@tanstack/react-router";
 import { fetchGroups } from "../lib/groups";
 import { sym_decrypt } from "argon2wasm";
 import { fetchMessages } from "../lib/messages";
@@ -11,7 +10,6 @@ const WS_URL = `${window.location.protocol === "https:" ? "wss://" : "ws://"}${
 
 export const useWebSocket = () => {
   const ws = useRef<WebSocket | null>(null);
-  const navigate = useNavigate();
   const [groups, setGroups] = useState<Groups>(new Map());
   const [isConnected, setIsConnected] = useState(false);
 
@@ -108,10 +106,7 @@ export const useWebSocket = () => {
         console.error("WebSocket error:", error);
       };
 
-      ws.current.onclose = (event) => {
-        if (event.code == 3000) {
-          navigate({ to: "/login" });
-        }
+      ws.current.onclose = () => {
         setTimeout(connectWebSocket, 3000);
         setIsConnected(false);
       };
