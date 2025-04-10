@@ -74,7 +74,7 @@ export default function ProfileMenu() {
         <Person />
       </IconButton>
       <Typography variant="h6" sx={{ margin: "auto" }}>
-        {"ORAL-B"}
+        {"E2EEMSGS"}
       </Typography>
       <Menu
         id="grouped-menu"
