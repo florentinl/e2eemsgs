@@ -38,7 +38,7 @@ export const useWebSocket = () => {
             content: {
               id: message.message.id!,
               content: decrypted,
-              attachment: null,
+              attachment: message.message.attachment,
               nonce: message.message.nonce,
               sender_id: message.message.sender_id,
               group_id: message.message.group_id,
