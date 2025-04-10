@@ -1,9 +1,8 @@
 import * as React from "react";
-import ListSubheader from "@mui/material/ListSubheader";
 import Menu from "@mui/material/Menu";
 import MenuItem from "@mui/material/MenuItem";
-import { IconButton } from "@mui/material";
-import { Settings } from "@mui/icons-material";
+import { Box, IconButton, Typography } from "@mui/material";
+import { Person } from "@mui/icons-material";
 import {
   handleEditProfileApiUsersEditProfilePost,
   whoamiApiSessionWhoamiGet,
@@ -60,7 +59,11 @@ export default function ProfileMenu() {
   };
 
   return (
-    <div>
+    <Box
+      display={"flex"}
+      alignItems={"center"}
+      sx={{ backgroundColor: "#414141", minHeight: "64px" }}
+    >
       <IconButton
         id="basic-button"
         aria-controls={open ? "grouped-menu" : undefined}
@@ -68,15 +71,17 @@ export default function ProfileMenu() {
         aria-expanded={open ? "true" : undefined}
         onClick={handleClick}
       >
-        <Settings />
+        <Person />
       </IconButton>
+      <Typography variant="h6" sx={{ margin: "auto" }}>
+        {"ORAL-B"}
+      </Typography>
       <Menu
         id="grouped-menu"
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
       >
-        <ListSubheader>{username}</ListSubheader>
         <UserProfileDialog
           username={username ?? undefined}
           description={description}
@@ -95,6 +100,6 @@ export default function ProfileMenu() {
           Logout
         </MenuItem>
       </Menu>
-    </div>
+    </Box>
   );
 }

@@ -1,4 +1,4 @@
-import { Box } from "@mui/material";
+import { Box, Drawer } from "@mui/material";
 import { useEffect, useState } from "react";
 import ChatTopBar from "../components/ChatTopBar";
 import GroupSidebar from "../components/GroupSideBar";
@@ -29,6 +29,26 @@ const ChatPage: React.FC<{}> = () => {
   const { groups, isConnected, setGroups } = useWebSocket();
   const [groupId, setGroupId] = useState<number>();
   const [user, setUser] = useState<User>();
+  const drawerWidth = 240;
+
+  // Drawer
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
+
+  const handleDrawerClose = () => {
+    setIsClosing(true);
+    setMobileOpen(false);
+  };
+
+  const handleDrawerTransitionEnd = () => {
+    setIsClosing(false);
+  };
+
+  const handleDrawerToggle = () => {
+    if (!isClosing) {
+      setMobileOpen(!mobileOpen);
+    }
+  };
 
   const [pendingMessage, setPendingMessage] = useState("");
 
@@ -220,62 +240,104 @@ const ChatPage: React.FC<{}> = () => {
   ) : (
     <Box sx={{ display: "flex", flexDirection: "row", height: "100vh" }}>
       {/* Sidebar */}
-      <GroupSidebar
-        groups={groups}
-        onSelect={handleSelectGroup}
-        onCreateGroup={handleCreateGroup}
-      />
-      {/* Main Layout */}
-      {!groupId ? (
-        <Box></Box>
-      ) : (
-        <Box
+      <Box
+        component="nav"
+        sx={{ width: { sm: drawerWidth }, flexShrink: { sm: 0 } }}
+        aria-label="mailbox folders"
+      >
+        <Drawer
+          variant="temporary"
+          open={mobileOpen}
+          onTransitionEnd={handleDrawerTransitionEnd}
+          onClose={handleDrawerClose}
           sx={{
-            display: "flex",
-            flexDirection: "column",
-            flex: 1,
-            height: "100vh",
+            display: { xs: "block", sm: "none" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
+              width: drawerWidth,
+            },
+          }}
+          slotProps={{
+            root: {
+              keepMounted: true, // Better open performance on mobile.
+            },
           }}
         >
-          {/* Top Bar */}
-          <Box sx={{ mx: 2 }}>
-            <ChatTopBar
-              groupName={groups.get(groupId)?.name || "Select a group"}
-              groupId={groupId}
-              onAddUser={handleAddUser}
-            />
-          </Box>
+          <GroupSidebar
+            groups={groups}
+            onSelect={handleSelectGroup}
+            onCreateGroup={handleCreateGroup}
+          />
+        </Drawer>
+        <Drawer
+          variant="permanent"
+          sx={{
+            display: { xs: "none", sm: "block" },
+            "& .MuiDrawer-paper": {
+              boxSizing: "border-box",
+              width: drawerWidth,
+            },
+          }}
+          open
+        >
+          <GroupSidebar
+            groups={groups}
+            onSelect={handleSelectGroup}
+            onCreateGroup={handleCreateGroup}
+          />
+        </Drawer>
+      </Box>
+      {/* Main Layout */}
+      <Box
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          flex: 1,
+          height: "100vh",
+        }}
+      >
+        {/* Top Bar */}
+        <ChatTopBar
+          groupName={(groupId && groups.get(groupId)?.name) || "Select a group"}
+          groupId={groupId}
+          onAddUser={handleAddUser}
+          handleDrawerToggle={handleDrawerToggle}
+        />
+        {!groupId ? (
+          <Box></Box>
+        ) : (
+          <>
+            {/* Message List */}
+            <Box
+              sx={{
+                flex: 1,
+                overflowY: "auto",
+                padding: 2,
+                my: 2,
+              }}
+            >
+              {messages.map((message) => (
+                <MessageDisplay
+                  key={message.id}
+                  msg={message}
+                  self={user!}
+                  handleDownload={handleDownload}
+                ></MessageDisplay>
+              ))}
+            </Box>
 
-          {/* Message List */}
-          <Box
-            sx={{
-              flex: 1,
-              overflowY: "auto",
-              padding: 2,
-              my: 2,
-            }}
-          >
-            {messages.map((message) => (
-              <MessageDisplay
-                key={message.id}
-                msg={message}
-                self={user!}
-                handleDownload={handleDownload}
-              ></MessageDisplay>
-            ))}
-          </Box>
-
-          {/* Message Entry Field */}
-          <Box sx={{ alignItems: "flex-end" }}>
-            <MessageInput
-              onSend={handleSendMessage}
-              maxLength={500}
-              message={pendingMessage}
-              setMessage={setPendingMessage}
-            />
-          </Box>
-        </Box>
-      )}
+            {/* Message Entry Field */}
+            <Box sx={{ alignItems: "flex-end" }}>
+              <MessageInput
+                onSend={handleSendMessage}
+                maxLength={500}
+                message={pendingMessage}
+                setMessage={setPendingMessage}
+              />
+            </Box>
+          </>
+        )}
+      </Box>
     </Box>
   );
 };
