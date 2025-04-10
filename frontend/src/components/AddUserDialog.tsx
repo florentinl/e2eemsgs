@@ -5,8 +5,9 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import { IconButton } from "@mui/material";
+import { Autocomplete, IconButton } from "@mui/material";
 import { PersonAdd } from "@mui/icons-material";
+import { getAllUsersApiUsersAllGet, type User } from "../api-client";
 
 type AddUserDialogProps = {
   onAddUser: (username: string) => Promise<void>; // Callback when a user is added
@@ -18,13 +19,19 @@ export default function AddUserDialog({
   groupName,
 }: AddUserDialogProps) {
   const [open, setOpen] = React.useState(false);
+  const [users, setUsers] = React.useState<User[]>([]);
   const [username, setUsername] = React.useState("");
 
-  const handleChange: React.ChangeEventHandler<HTMLInputElement> = (e) => {
-    setUsername(e.target.value);
+  const handleChange = (_e: React.SyntheticEvent, newValue: string) => {
+    setUsername(newValue);
   };
 
-  const handleClickOpen = () => {
+  const handleClickOpen = async () => {
+    const response = await getAllUsersApiUsersAllGet();
+    if (!response.data) {
+      return;
+    }
+    setUsers(response.data);
     setOpen(true);
   };
 
@@ -47,17 +54,24 @@ export default function AddUserDialog({
       <Dialog open={open} onClose={handleClose}>
         <DialogTitle>Add user to {groupName}</DialogTitle>
         <DialogContent>
-          <TextField
-            autoFocus
-            required
-            margin="dense"
-            id="name"
-            name="name"
-            label="Username"
-            fullWidth
-            variant="standard"
-            value={username}
-            onChange={handleChange}
+          <Autocomplete
+            getOptionLabel={(user) => user.username}
+            onInputChange={handleChange}
+            renderInput={(params) => (
+              <TextField
+                {...params}
+                autoFocus
+                required
+                margin="dense"
+                id="name"
+                name="name"
+                label="Username"
+                fullWidth
+                variant="standard"
+                value={username}
+              />
+            )}
+            options={users}
           />
         </DialogContent>
         <DialogActions>

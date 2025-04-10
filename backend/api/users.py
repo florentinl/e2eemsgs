@@ -1,3 +1,5 @@
+from typing import Sequence
+
 from fastapi import APIRouter, HTTPException, Request
 from models import User, engine
 from pydantic import BaseModel
@@ -52,3 +54,11 @@ def handle_edit_profile(req: Request, edit: EditProfileRequest) -> User:
         session.refresh(user)
 
         return user
+
+
+@router.get("/all")
+def get_all_users(req: Request) -> Sequence[User]:
+    uid = req.state.uid
+    with Session(engine) as session:
+        users = session.exec(select(User).where(User.id != uid)).all()
+        return users

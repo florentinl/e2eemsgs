@@ -492,6 +492,22 @@ export type HandleEditProfileApiUsersEditProfilePostResponses = {
 
 export type HandleEditProfileApiUsersEditProfilePostResponse = HandleEditProfileApiUsersEditProfilePostResponses[keyof HandleEditProfileApiUsersEditProfilePostResponses];
 
+export type GetAllUsersApiUsersAllGetData = {
+    body?: never;
+    path?: never;
+    query?: never;
+    url: '/api/users/all';
+};
+
+export type GetAllUsersApiUsersAllGetResponses = {
+    /**
+     * Successful Response
+     */
+    200: Array<User>;
+};
+
+export type GetAllUsersApiUsersAllGetResponse = GetAllUsersApiUsersAllGetResponses[keyof GetAllUsersApiUsersAllGetResponses];
+
 export type ClientOptions = {
     baseUrl: `${string}://${string}` | (string & {});
 };
