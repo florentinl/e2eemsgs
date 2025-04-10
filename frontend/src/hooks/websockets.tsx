@@ -112,6 +112,7 @@ export const useWebSocket = () => {
         if (event.code == 3000) {
           navigate({ to: "/login" });
         }
+        setTimeout(connectWebSocket, 3000);
         setIsConnected(false);
       };
     };
