@@ -197,11 +197,11 @@ const ChatPage: React.FC<{}> = () => {
     }
   };
 
-  const handleDownload = (msg: Message) => {
-    if (groupId === undefined) return;
+  const getDecryptedFile = async (msg: Message) => {
+    if (groupId === undefined || msg.content.attachment == null) return null;
     const key = groups.get(groupId)?.symmetricKey!;
 
-    downloadApiMessagesDownloadPost({
+    const response = await downloadApiMessagesDownloadPost({
       body: {
         message_id: msg.id,
       },
@@ -210,29 +210,31 @@ const ChatPage: React.FC<{}> = () => {
         return (response.data as Blob).text();
       })
       .then((stringContent) => {
-        if (msg.content.attachment == null) {
-          return;
-        } else {
-          const clearFile = sym_decrypt_bytes(
-            {
-              nonce: msg.content.attachment.nonce,
-              message: stringContent,
-            },
-            key
-          );
-
-          var url = window.URL.createObjectURL(new Blob([clearFile]));
-          var a = document.createElement("a");
-          a.href = url;
-          a.download =
-            msg.content.attachment == null
-              ? "new_file"
-              : msg.content.attachment.pretty_name;
-          document.body.appendChild(a); // append the element to the dom
-          a.click();
-          a.remove();
-        }
+        const clearFile = sym_decrypt_bytes(
+          {
+            nonce: msg.content.attachment!.nonce,
+            message: stringContent,
+          },
+          key
+        );
+        const blob = new Blob([clearFile]);
+        return blob;
       });
+    return response;
+  };
+
+  const handleDownload = async (msg: Message) => {
+    const clearFile = await getDecryptedFile(msg);
+    let url = window.URL.createObjectURL(clearFile!);
+    let a = document.createElement("a");
+    a.href = url;
+    a.download =
+      msg.content.attachment == null
+        ? "new_file"
+        : msg.content.attachment.pretty_name;
+    document.body.appendChild(a); // append the element to the dom
+    a.click();
+    a.remove();
   };
 
   return !isConnected ? (
@@ -322,6 +324,7 @@ const ChatPage: React.FC<{}> = () => {
                   msg={message}
                   self={user!}
                   handleDownload={handleDownload}
+                  getDecryptedFile={getDecryptedFile}
                 ></MessageDisplay>
               ))}
             </Box>

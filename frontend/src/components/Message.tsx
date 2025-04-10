@@ -1,15 +1,35 @@
-import { Card, CardContent, Chip, Typography } from "@mui/material";
+import { Card, CardContent, CardMedia, Chip, Typography } from "@mui/material";
 import { type User } from "../api-client";
 import type { Message } from "../types";
 import { Download } from "@mui/icons-material";
+import { useEffect, useState } from "react";
 
 export type MessageProps = {
   msg: Message;
   self: User;
   handleDownload: (msg: Message) => void;
+  getDecryptedFile: (msg: Message) => Promise<Blob | null>;
 };
 
-const MessageDisplay = ({ msg, self, handleDownload }: MessageProps) => {
+const MessageDisplay = ({
+  msg,
+  self,
+  handleDownload,
+  getDecryptedFile,
+}: MessageProps) => {
+  const [imageUrl, setImageUrl] = useState<string>();
+  const isImage = ["jpg", "jpeg", "png", "webp"].includes(
+    msg.content.attachment?.pretty_name.split(".").pop() || ""
+  );
+  console.log("is image", isImage);
+
+  useEffect(() => {
+    if (!isImage) return;
+    getDecryptedFile(msg).then((blob_) =>
+      setImageUrl((blob_ && window.URL.createObjectURL(blob_)) ?? undefined)
+    );
+  }, [isImage, msg]);
+
   return (
     <Card
       sx={{
@@ -21,6 +41,9 @@ const MessageDisplay = ({ msg, self, handleDownload }: MessageProps) => {
           : {}),
       }}
     >
+      {isImage && (
+        <CardMedia sx={{ height: 140 }} image={imageUrl} title="green iguana" />
+      )}
       <CardContent>
         {self.username !== msg.sender_name && (
           <Typography variant="subtitle2" color="textSecondary">
