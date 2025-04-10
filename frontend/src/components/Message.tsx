@@ -1,4 +1,11 @@
-import { Card, CardContent, CardMedia, Chip, Typography } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  CardMedia,
+  Chip,
+  Dialog,
+  Typography,
+} from "@mui/material";
 import { type User } from "../api-client";
 import type { Message } from "../types";
 import { Download } from "@mui/icons-material";
@@ -18,10 +25,11 @@ const MessageDisplay = ({
   getDecryptedFile,
 }: MessageProps) => {
   const [imageUrl, setImageUrl] = useState<string>();
+  const [imagePreviewOpen, setImagePreviewOpen] = useState(false);
   const isImage = ["jpg", "jpeg", "png", "webp"].includes(
     msg.content.attachment?.pretty_name.split(".").pop() || ""
   );
-  console.log("is image", isImage);
+  console.log("is image", imagePreviewOpen);
 
   useEffect(() => {
     if (!isImage) return;
@@ -42,7 +50,22 @@ const MessageDisplay = ({
       }}
     >
       {isImage && (
-        <CardMedia sx={{ height: 140 }} image={imageUrl} title="green iguana" />
+        <>
+          <CardMedia
+            sx={{ height: 140 }}
+            image={imageUrl}
+            onClick={() => setImagePreviewOpen(true)}
+            title="green iguana"
+          />
+          {imagePreviewOpen && (
+            <Dialog
+              open={imagePreviewOpen}
+              onClose={() => setImagePreviewOpen(false)}
+            >
+              <img src={imageUrl}></img>
+            </Dialog>
+          )}
+        </>
       )}
       <CardContent>
         {self.username !== msg.sender_name && (
