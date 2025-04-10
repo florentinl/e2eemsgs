@@ -5,14 +5,23 @@ services:
 
   backend:
     build: .
+    image: flowrentin/e2eemsgs:latest
     ports:
       - 8000:8000
     environment:
-      - DATABASE_URL=sqlite:////db/database.sqlite3
+      # - DATABASE_URL=sqlite:////db/database.sqlite3
+      - DATABASE_URL=postgresql://e2eemsgs:unguessable_password@database/e2eemsgs
       - JWT_SECRET=a_very_random_and_unguessable_secret
     volumes:
-      - database:/db
       - attachments:/app/files
+
+  database:
+    image: postgres
+    environment:
+      - POSTGRES_USER=e2eemsgs
+      - POSTGRES_PASSWORD=unguessable_password
+    volumes:
+      - database:/var/lib/postgresql/data
 
 volumes:
   database:

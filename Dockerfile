@@ -2,10 +2,11 @@ FROM rust AS agepy_builder
 WORKDIR /app
 
 # Install maturin
-RUN cargo install maturin
+RUN apt update && apt install pipx -y
+RUN pipx install maturin
 
 COPY backend/agepy .
-RUN maturin build --release -i python3.12
+RUN pipx run maturin build --release -i python3.12
 
 FROM python:3.12-slim AS backend_builder
 WORKDIR /app
@@ -14,7 +15,7 @@ COPY backend/requirements.txt .
 
 RUN tail -n +2 requirements.txt > requirements_.txt
 RUN pip install -r requirements_.txt
-COPY --from=agepy_builder /app/target/wheels/agepy-0.1.0-cp312-cp312-manylinux_2_34_x86_64.whl /tmp
+COPY --from=agepy_builder /app/target/wheels/agepy-0.1.0-cp312-cp312-manylinux_2_34_*.whl /tmp
 RUN pip install /tmp/*.whl
 
 COPY backend .
@@ -25,7 +26,7 @@ WORKDIR /app
 
 # Install wasm-pack
 RUN rustup target add wasm32-unknown-unknown
-RUN cargo install wasm-pack
+RUN curl https://rustwasm.github.io/wasm-pack/installer/init.sh -sSf | sh
 
 COPY frontend/argon2wasm .
 

@@ -4,8 +4,10 @@
 
 WARNING: the default docker-compose.yaml is for dev only, you should use the `docker-compose.prod.yaml` to test the website in its "production" build.
 
+By default it downloads a prebuilt image to avoid the need for building which can take some time (rust is involved).
+
 ```bash
-docker compose -f docker-compose.prod.yaml up -d
+docker compose -f docker-compose.prod.yaml up -d # Add `--build` to force rebuilding it
 ```
 
 The site should be available on `http://localhost:3000`.
