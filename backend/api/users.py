@@ -1,9 +1,11 @@
 from typing import Sequence
 
 from fastapi import APIRouter, HTTPException, Request
-from models import User, engine
+from models import Group, User, engine
 from pydantic import BaseModel
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
+
+from api.groups import is_member
 
 router = APIRouter(prefix="/users")
 
@@ -57,8 +59,12 @@ def handle_edit_profile(req: Request, edit: EditProfileRequest) -> User:
 
 
 @router.get("/all")
-def get_all_users(req: Request) -> Sequence[User]:
+def get_all_users(req: Request, group_id: int) -> Sequence[User]:
     uid = req.state.uid
+    if not is_member(uid, group_id):
+        raise HTTPException(status_code=404, detail="Not found")
     with Session(engine) as session:
-        users = session.exec(select(User).where(User.id != uid)).all()
+        group = session.exec(select(Group).where(Group.id == group_id)).one()
+        users = map(lambda m: m.user_id, group.members)
+        users = session.exec(select(User).where(col(User.id).not_in(users))).all()
         return users

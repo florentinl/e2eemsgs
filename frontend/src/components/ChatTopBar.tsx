@@ -7,7 +7,7 @@ import type { Group } from "../types";
 type ChatTopBarProps = {
   group: Group | null;
   userId: number;
-  onAddUser?: (username: string) => Promise<void>; // Callback for adding user
+  onAddUser?: (usernames: string[]) => Promise<void>; // Callback for adding user
   handleDrawerToggle: () => void;
 };
 
@@ -37,7 +37,7 @@ export default function ChatTopBar({
         {group && onAddUser && (
           <Box display={"flex"}>
             {group.ownerId == userId && (
-              <AddUserDialog onAddUser={onAddUser} groupName={group.name} />
+              <AddUserDialog onAddUser={onAddUser} group={group} />
             )}
             <GroupMemberMenu group_id={group.id || -1} />
           </Box>

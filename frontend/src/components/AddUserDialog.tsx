@@ -5,29 +5,35 @@ import Dialog from "@mui/material/Dialog";
 import DialogActions from "@mui/material/DialogActions";
 import DialogContent from "@mui/material/DialogContent";
 import DialogTitle from "@mui/material/DialogTitle";
-import { Autocomplete, IconButton } from "@mui/material";
+import { Autocomplete, IconButton, Typography } from "@mui/material";
 import { PersonAdd } from "@mui/icons-material";
 import { getAllUsersApiUsersAllGet, type User } from "../api-client";
+import type { Group } from "../types";
 
 type AddUserDialogProps = {
-  onAddUser: (username: string) => Promise<void>; // Callback when a user is added
-  groupName: string;
+  onAddUser: (usernames: string[]) => Promise<void>; // Callback when a user is added
+  group: Group;
 };
 
 export default function AddUserDialog({
   onAddUser,
-  groupName,
+  group,
 }: AddUserDialogProps) {
   const [open, setOpen] = React.useState(false);
   const [users, setUsers] = React.useState<User[]>([]);
-  const [username, setUsername] = React.useState("");
+  const [usernames, setUsernames] = React.useState<string[]>([]);
+  console.log(usernames);
 
-  const handleChange = (_e: React.SyntheticEvent, newValue: string) => {
-    setUsername(newValue);
+  const handleChange = (_e: React.SyntheticEvent, value: User[]) => {
+    setUsernames(value.map((u) => u.username));
   };
 
   const handleClickOpen = async () => {
-    const response = await getAllUsersApiUsersAllGet();
+    const response = await getAllUsersApiUsersAllGet({
+      query: {
+        group_id: group.id,
+      },
+    });
     if (!response.data) {
       return;
     }
@@ -36,13 +42,13 @@ export default function AddUserDialog({
   };
 
   const handleClose = () => {
-    setUsername("");
+    setUsernames([]);
     setOpen(false);
   };
 
   const handleCreateGroup: React.MouseEventHandler<HTMLButtonElement> = (e) => {
     e.preventDefault();
-    onAddUser(username);
+    onAddUser(usernames);
     handleClose();
   };
 
@@ -51,12 +57,18 @@ export default function AddUserDialog({
       <IconButton onClick={handleClickOpen}>
         <PersonAdd />
       </IconButton>
-      <Dialog open={open} onClose={handleClose}>
-        <DialogTitle>Add user to {groupName}</DialogTitle>
+      <Dialog open={open} onClose={handleClose} fullWidth>
+        <DialogTitle sx={{ display: "flex" }}>
+          <Typography fontSize={"1.5em"}>Add users to&nbsp;</Typography>
+          <Typography fontSize={"1.5em"} color="secondary">
+            {group.name}
+          </Typography>
+        </DialogTitle>
         <DialogContent>
           <Autocomplete
+            multiple
             getOptionLabel={(user) => user.username}
-            onInputChange={handleChange}
+            onChange={handleChange}
             renderInput={(params) => (
               <TextField
                 {...params}
@@ -68,7 +80,7 @@ export default function AddUserDialog({
                 label="Username"
                 fullWidth
                 variant="standard"
-                value={username}
+                value={usernames}
               />
             )}
             options={users}

@@ -40,7 +40,7 @@ export default function CreateGroupDialog({
       <Button variant="outlined" onClick={handleClickOpen}>
         Create new group
       </Button>
-      <Dialog open={open} onClose={handleClose}>
+      <Dialog open={open} onClose={handleClose} fullWidth>
         <DialogTitle>Create new group</DialogTitle>
         <DialogContent>
           <TextField

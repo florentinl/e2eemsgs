@@ -62,7 +62,9 @@ export default function ProfileMenu() {
     <Box
       display={"flex"}
       alignItems={"center"}
-      sx={{ backgroundColor: "#414141", minHeight: "64px" }}
+      sx={{
+        minHeight: "64px",
+      }}
     >
       <IconButton
         id="basic-button"

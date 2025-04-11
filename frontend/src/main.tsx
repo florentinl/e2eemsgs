@@ -11,12 +11,7 @@ import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
 
 import "./styles.css";
 
-import {
-  createTheme,
-  CssBaseline,
-  ThemeProvider,
-  useMediaQuery,
-} from "@mui/material";
+import { createTheme, CssBaseline, ThemeProvider } from "@mui/material";
 import Login from "./pages/Login.tsx";
 import Chat from "./pages/Chat.tsx";
 import { CryptoWasmWrapper } from "./components/cryptoWasm.tsx";
@@ -77,15 +72,10 @@ declare module "@tanstack/react-router" {
 }
 
 const App = () => {
-  const prefers_dark_mode = useMediaQuery("(prefers-color-scheme: dark)");
   const theme = createTheme({
-    colorSchemes: prefers_dark_mode
-      ? {
-          dark: true,
-        }
-      : {
-          light: true,
-        },
+    colorSchemes: {
+      dark: true,
+    },
   });
   return (
     <StrictMode>

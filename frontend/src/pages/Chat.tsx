@@ -109,50 +109,52 @@ const ChatPage: React.FC<{}> = () => {
     }
   };
 
-  const handleAddUser = async (username: string) => {
+  const handleAddUser = async (usernames: string[]) => {
     if (groupId === undefined) return;
 
     const currGroupName = groups.get(groupId)?.name || "Select a group";
     const currSymKey = groups.get(groupId)?.symmetricKey;
-    console.log("Adding user", { username }, "to group ", { currGroupName });
+    console.log("Adding users", { usernames }, "to group ", { currGroupName });
     try {
-      const userResponse = await handleGetUserByUsernameApiUsersUsernameGet({
-        query: {
-          username: username,
-        },
-      });
-      if (userResponse.error) {
-        if (userResponse.response.status == 404) {
-          console.error("User does not exist");
-          return;
-        } else {
-          console.error("Internal server error");
-          return;
-        }
-      }
-      if (currSymKey && userResponse.data.id && groupId) {
-        const ciphered_symKey = asym_encrypt(
-          currSymKey,
-          userResponse.data.public_key
-        );
-
-        const addResponse = await handleAddGroupUserApiGroupsAddPost({
-          body: {
-            user_id: userResponse.data.id,
-            group_id: groupId,
-            symmetric_key: ciphered_symKey,
+      for (const username of usernames) {
+        const userResponse = await handleGetUserByUsernameApiUsersUsernameGet({
+          query: {
+            username: username,
           },
         });
-        if (addResponse.error) {
-          if (addResponse.response.status == 403) {
-            console.error("Not allowed to add user");
+        if (userResponse.error) {
+          if (userResponse.response.status == 404) {
+            console.error("User does not exist");
             return;
           } else {
             console.error("Internal server error");
             return;
           }
         }
-        console.log("Successfully added user");
+        if (currSymKey && userResponse.data.id && groupId) {
+          const ciphered_symKey = asym_encrypt(
+            currSymKey,
+            userResponse.data.public_key
+          );
+
+          const addResponse = await handleAddGroupUserApiGroupsAddPost({
+            body: {
+              user_id: userResponse.data.id,
+              group_id: groupId,
+              symmetric_key: ciphered_symKey,
+            },
+          });
+          if (addResponse.error) {
+            if (addResponse.response.status == 403) {
+              console.error("Not allowed to add user");
+              return;
+            } else {
+              console.error("Internal server error");
+              return;
+            }
+          }
+          console.log("Successfully added user");
+        }
       }
     } catch (err) {
       console.error("Error while creating the group", err);

@@ -124,8 +124,8 @@ export type ValidationError = {
 export type SignupApiAuthSignupPostData = {
     body: User;
     path?: never;
-    query: {
-        signup_secret: string | null;
+    query?: {
+        signup_secret?: string | null;
     };
     url: '/api/auth/signup';
 };
@@ -498,9 +498,20 @@ export type HandleEditProfileApiUsersEditProfilePostResponse = HandleEditProfile
 export type GetAllUsersApiUsersAllGetData = {
     body?: never;
     path?: never;
-    query?: never;
+    query: {
+        group_id: number;
+    };
     url: '/api/users/all';
 };
+
+export type GetAllUsersApiUsersAllGetErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type GetAllUsersApiUsersAllGetError = GetAllUsersApiUsersAllGetErrors[keyof GetAllUsersApiUsersAllGetErrors];
 
 export type GetAllUsersApiUsersAllGetResponses = {
     /**

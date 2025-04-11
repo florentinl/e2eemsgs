@@ -69,9 +69,7 @@ const MessageDisplay = ({
       )}
       <CardContent>
         {self.username !== msg.sender_name && (
-          <Typography variant="subtitle2" color="textSecondary">
-            {msg.sender_name}
-          </Typography>
+          <Typography variant="subtitle2">{msg.sender_name}</Typography>
         )}
         {msg.content.attachment == null ? (
           <></>
