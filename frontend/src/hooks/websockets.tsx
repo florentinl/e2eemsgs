@@ -57,23 +57,19 @@ export const useWebSocket = () => {
       ws.current = new WebSocket(WS_URL);
 
       ws.current.onopen = () => {
-        console.log("Connected to WebSocket");
         setIsConnected(true);
       };
 
       ws.current.onmessage = (event) => {
         const notification = JSON.parse(event.data) as Notification;
         if (notification.type == "joinedGroupNotification") {
-          console.log("Received message:", notification);
           refetchGroupsAndMessages();
         }
         if (notification.type == "messageNotification") {
-          console.log("Received message:", notification);
           setGroups((groups) => {
             const newGroups = new Map(groups);
             const msg = notification.message;
             const group = newGroups.get(notification.message.group_id)!;
-            console.log("Member of group, ", group, groups);
 
             const clearMessage = sym_decrypt(
               {
@@ -118,5 +114,5 @@ export const useWebSocket = () => {
     };
   }, []);
 
-  return { groups, setGroups, isConnected };
+  return { groups, setGroups, isConnected, refetchGroupsAndMessages };
 };

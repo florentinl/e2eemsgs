@@ -27,7 +27,8 @@ import type { Message } from "../types";
 import { useNavigate } from "@tanstack/react-router";
 
 const ChatPage: React.FC<{}> = () => {
-  const { groups, isConnected, setGroups } = useWebSocket();
+  const { groups, isConnected, setGroups, refetchGroupsAndMessages } =
+    useWebSocket();
   const navigate = useNavigate();
   const [groupId, setGroupId] = useState<number>();
   const [user, setUser] = useState<User>();
@@ -83,7 +84,6 @@ const ChatPage: React.FC<{}> = () => {
   };
 
   const handleCreateGroup = async (groupName: string) => {
-    console.log("Creation of group:", { groupName });
     const publicKey = localStorage.getItem("publicKey");
     if (publicKey) {
       const symmetricKey = generate_sym_key();
@@ -103,6 +103,7 @@ const ChatPage: React.FC<{}> = () => {
           );
           return;
         }
+        refetchGroupsAndMessages().then(() => setGroupId(response.data.id));
       } catch (err) {
         console.error("Error while creating the group", err);
       }
@@ -111,10 +112,7 @@ const ChatPage: React.FC<{}> = () => {
 
   const handleAddUser = async (usernames: string[]) => {
     if (groupId === undefined) return;
-
-    const currGroupName = groups.get(groupId)?.name || "Select a group";
     const currSymKey = groups.get(groupId)?.symmetricKey;
-    console.log("Adding users", { usernames }, "to group ", { currGroupName });
     try {
       for (const username of usernames) {
         const userResponse = await handleGetUserByUsernameApiUsersUsernameGet({
@@ -153,7 +151,6 @@ const ChatPage: React.FC<{}> = () => {
               return;
             }
           }
-          console.log("Successfully added user");
         }
       }
     } catch (err) {
@@ -172,7 +169,6 @@ const ChatPage: React.FC<{}> = () => {
         : sym_encrypt(message, key);
 
     if (file == null) {
-      console.log(encryptedMessage);
       await sendMessageApiMessagesPost({
         body: {
           content: encryptedMessage.message,
@@ -278,6 +274,7 @@ const ChatPage: React.FC<{}> = () => {
         >
           <GroupSidebar
             groups={groups}
+            selectedGroupId={groupId}
             onSelect={handleSelectGroup}
             onCreateGroup={handleCreateGroup}
           />
@@ -295,6 +292,7 @@ const ChatPage: React.FC<{}> = () => {
         >
           <GroupSidebar
             groups={groups}
+            selectedGroupId={groupId}
             onSelect={handleSelectGroup}
             onCreateGroup={handleCreateGroup}
           />

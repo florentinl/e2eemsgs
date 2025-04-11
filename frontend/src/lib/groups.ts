@@ -6,9 +6,7 @@ import {
 import type { Groups } from "../types";
 
 export const fetchGroups = async () => {
-  console.log("fetching groups...");
   const response = await handleGetUserGroupsApiGroupsGet();
-  console.log(response);
 
   if (response.error) {
     console.error("Error while fetching groups");
@@ -30,6 +28,5 @@ export const fetchGroups = async () => {
       messages: new Map(),
     });
   });
-  console.log(groupMap);
   return groupMap;
 };

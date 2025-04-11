@@ -29,7 +29,6 @@ const MessageDisplay = ({
   const isImage = ["jpg", "jpeg", "png", "webp"].includes(
     msg.content.attachment?.pretty_name.split(".").pop() || ""
   );
-  console.log("is image", imagePreviewOpen);
 
   useEffect(() => {
     if (!isImage) return;

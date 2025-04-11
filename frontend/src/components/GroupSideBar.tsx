@@ -1,4 +1,3 @@
-import { useState } from "react";
 import {
   List,
   ListItem,
@@ -13,19 +12,18 @@ import ProfileMenu from "./ProfileMenu";
 
 type GroupSidebarProps = {
   groups: Groups;
+  selectedGroupId?: number;
   onSelect: (group: number) => void; // Callback when a group is selected
   onCreateGroup: (groupName: string) => void; // Callback when a group is created
 };
 
 export default function GroupSidebar({
   groups,
+  selectedGroupId,
   onSelect,
   onCreateGroup,
 }: GroupSidebarProps) {
-  const [selectedGroupId, setSelectedGroup] = useState<number | null>(null);
-
   const handleSelect = (group: number) => {
-    setSelectedGroup(group);
     onSelect(group);
   };
 

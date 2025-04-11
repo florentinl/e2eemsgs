@@ -22,7 +22,6 @@ export default function AddUserDialog({
   const [open, setOpen] = React.useState(false);
   const [users, setUsers] = React.useState<User[]>([]);
   const [usernames, setUsernames] = React.useState<string[]>([]);
-  console.log(usernames);
 
   const handleChange = (_e: React.SyntheticEvent, value: User[]) => {
     setUsernames(value.map((u) => u.username));

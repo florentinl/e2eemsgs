@@ -58,7 +58,9 @@ export default function CreateGroupDialog({
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button onClick={handleCreateGroup}>Create</Button>
+          <Button onClick={handleCreateGroup} disabled={groupName.length < 3}>
+            Create
+          </Button>
         </DialogActions>
       </Dialog>
     </React.Fragment>

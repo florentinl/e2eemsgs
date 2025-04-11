@@ -4,7 +4,7 @@ from typing import List, Literal
 from fastapi import APIRouter, HTTPException, Request
 from models import Group, GroupMember, User, engine
 from notifications import STREAM_NAME, get_js
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
 from api.websocket import JoinGroupNotification
@@ -15,7 +15,7 @@ logger = logging.getLogger("uvicorn")
 
 
 class CreateGroupRequest(BaseModel):
-    name: str
+    name: str = Field(min_length=3)
     symmetric_key: str
 
 
