@@ -82,7 +82,6 @@ const Login = () => {
     }
 
     if (usernameOk && passwordOk) {
-      console.log("Loging in with credentials: ", credentials);
       await sendLogin(
         credentials.username,
         credentials.password,
