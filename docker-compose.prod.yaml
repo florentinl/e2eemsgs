@@ -14,14 +14,24 @@ services:
       - JWT_SECRET=a_very_random_and_unguessable_secret
     volumes:
       - attachments:/app/files
+    depends_on:
+      database:
+        condition: service_healthy
+        restart: true
 
   database:
     image: postgres
     environment:
       - POSTGRES_USER=e2eemsgs
       - POSTGRES_PASSWORD=unguessable_password
+      - PGUSER=e2eemsgs
     volumes:
       - database:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready", "-d", "e2eemsgs"]
+      interval: 10s
+      timeout: 10s
+      retries: 5
 
 volumes:
   database:
