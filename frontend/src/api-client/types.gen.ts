@@ -27,6 +27,12 @@ export type DownloadFileRequest = {
     message_id: number;
 };
 
+export type EditGroupMemberRequest = {
+    user_id: number;
+    group_id: number;
+    symmetric_key: string;
+};
+
 export type EditProfileRequest = {
     description: string;
     social_link: string;
@@ -66,6 +72,11 @@ export type GroupMessageRequest = {
     nonce: string;
     group_id: number;
     has_attachment: boolean;
+};
+
+export type GroupRemoveUserRequest = {
+    user_id: number;
+    group_id: number;
 };
 
 export type HttpValidationError = {
@@ -269,6 +280,56 @@ export type HandleAddGroupUserApiGroupsAddPostResponses = {
 };
 
 export type HandleAddGroupUserApiGroupsAddPostResponse = HandleAddGroupUserApiGroupsAddPostResponses[keyof HandleAddGroupUserApiGroupsAddPostResponses];
+
+export type HandleRemoveGroupUserApiGroupsRemovePostData = {
+    body: GroupRemoveUserRequest;
+    path?: never;
+    query?: never;
+    url: '/api/groups/remove';
+};
+
+export type HandleRemoveGroupUserApiGroupsRemovePostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type HandleRemoveGroupUserApiGroupsRemovePostError = HandleRemoveGroupUserApiGroupsRemovePostErrors[keyof HandleRemoveGroupUserApiGroupsRemovePostErrors];
+
+export type HandleRemoveGroupUserApiGroupsRemovePostResponses = {
+    /**
+     * Successful Response
+     */
+    200: Group;
+};
+
+export type HandleRemoveGroupUserApiGroupsRemovePostResponse = HandleRemoveGroupUserApiGroupsRemovePostResponses[keyof HandleRemoveGroupUserApiGroupsRemovePostResponses];
+
+export type HandleEditGroupMemberApiGroupsEditPostData = {
+    body: EditGroupMemberRequest;
+    path?: never;
+    query?: never;
+    url: '/api/groups/edit';
+};
+
+export type HandleEditGroupMemberApiGroupsEditPostErrors = {
+    /**
+     * Validation Error
+     */
+    422: HttpValidationError;
+};
+
+export type HandleEditGroupMemberApiGroupsEditPostError = HandleEditGroupMemberApiGroupsEditPostErrors[keyof HandleEditGroupMemberApiGroupsEditPostErrors];
+
+export type HandleEditGroupMemberApiGroupsEditPostResponses = {
+    /**
+     * Successful Response
+     */
+    200: GroupMember;
+};
+
+export type HandleEditGroupMemberApiGroupsEditPostResponse = HandleEditGroupMemberApiGroupsEditPostResponses[keyof HandleEditGroupMemberApiGroupsEditPostResponses];
 
 export type HandleGetUserGroupsApiGroupsGetData = {
     body?: never;

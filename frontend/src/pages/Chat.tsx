@@ -17,7 +17,10 @@ import {
   downloadApiMessagesDownloadPost,
   handleAddGroupUserApiGroupsAddPost,
   handleCreateGroupApiGroupsCreatePost,
+  handleEditGroupMemberApiGroupsEditPost,
+  handleGetGroupUsersApiGroupsUsersGet,
   handleGetUserByUsernameApiUsersUsernameGet,
+  handleRemoveGroupUserApiGroupsRemovePost,
   sendMessageApiMessagesPost,
   uploadApiMessagesUploadPost,
   whoamiApiSessionWhoamiGet,
@@ -155,6 +158,86 @@ const ChatPage: React.FC<{}> = () => {
       }
     } catch (err) {
       console.error("Error while creating the group", err);
+    }
+  };
+
+  const handleRemoveUser = async (usernames: string[]) => {
+    if (groupId === undefined) return;
+
+    const currGroup = groups.get(groupId);
+    if (!currGroup) return;
+
+    try {
+      for (const username of usernames) {
+        const userResponse = await handleGetUserByUsernameApiUsersUsernameGet({
+          query: {
+            username: username,
+          },
+        });
+
+        if (userResponse.error) {
+          if (userResponse.response.status == 404) {
+            console.error("User does not exist");
+            return;
+          } else {
+            console.error("Internal server error");
+            return;
+          }
+        }
+
+        if (userResponse.data.id == null) return;
+        const removeResponse = await handleRemoveGroupUserApiGroupsRemovePost({
+          body: {
+            user_id: userResponse.data.id,
+            group_id: groupId,
+          },
+        });
+        if (removeResponse.error) {
+          if (removeResponse.response.status == 403) {
+            console.error("Not allowed to remove user");
+            return;
+          } else {
+            console.error("Internal server error");
+            return;
+          }
+        }
+      }
+
+      const newSymKey = generate_sym_key(); // New symmetric key of the group
+
+      const fetchResponse = await handleGetGroupUsersApiGroupsUsersGet({
+        query: { group_id: groupId },
+      });
+      if (fetchResponse.error) {
+        if (fetchResponse.response.status == 403) {
+          console.error("Not allowed to remove user");
+          return;
+        } else {
+          console.error("Internal server error");
+          return;
+        }
+      }
+
+      for (const user of fetchResponse.data) {
+        if (user.id == null) return;
+
+        const ciphered_symKey = asym_encrypt(newSymKey, user.public_key);
+
+        const editResponse = await handleEditGroupMemberApiGroupsEditPost({
+          body: {
+            user_id: user.id,
+            group_id: groupId,
+            symmetric_key: ciphered_symKey,
+          },
+        });
+        if (editResponse.error) {
+          console.error(
+            `Failed to update symmetric key for user ${user.username}`
+          );
+        }
+      }
+    } catch (err) {
+      console.error("Failed to remove user", err);
     }
   };
 
@@ -312,6 +395,7 @@ const ChatPage: React.FC<{}> = () => {
           group={(groupId && groups.get(groupId)) || null}
           userId={user?.id || -1}
           onAddUser={handleAddUser}
+          onRemoveUser={handleRemoveUser}
           handleDrawerToggle={handleDrawerToggle}
         />
         {!groupId ? (

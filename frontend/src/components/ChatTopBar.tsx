@@ -3,11 +3,13 @@ import AddUserDialog from "./AddUserDialog";
 import GroupMemberMenu from "./GroupMembersMenu";
 import { Menu } from "@mui/icons-material";
 import type { Group } from "../types";
+import RemoveUserDialog from "./RemoveUserDialog";
 
 type ChatTopBarProps = {
   group: Group | null;
   userId: number;
   onAddUser?: (usernames: string[]) => Promise<void>; // Callback for adding user
+  onRemoveUser?: (usernames: string[]) => Promise<void>; // Callback for removing user
   handleDrawerToggle: () => void;
 };
 
@@ -15,6 +17,7 @@ export default function ChatTopBar({
   group,
   userId,
   onAddUser,
+  onRemoveUser,
   handleDrawerToggle,
 }: ChatTopBarProps) {
   return (
@@ -34,10 +37,13 @@ export default function ChatTopBar({
             {group?.name || ""}
           </Typography>
         </Box>
-        {group && onAddUser && (
+        {group && onAddUser && onRemoveUser && (
           <Box display={"flex"}>
             {group.ownerId == userId && (
-              <AddUserDialog onAddUser={onAddUser} group={group} />
+              <>
+                <AddUserDialog onAddUser={onAddUser} group={group} />
+                <RemoveUserDialog onRemoveUser={onRemoveUser} group={group} />
+              </>
             )}
             <GroupMemberMenu group_id={group.id || -1} />
           </Box>

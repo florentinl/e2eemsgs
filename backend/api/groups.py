@@ -7,7 +7,7 @@ from notifications import STREAM_NAME, get_js
 from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
-from api.websocket import JoinGroupNotification
+from api.websocket import JoinGroupNotification, QuitGroupNotification
 
 router = APIRouter(prefix="/groups")
 
@@ -28,6 +28,17 @@ class GroupAddUserRequest(BaseModel):
     user_id: int
     symmetric_key: str
     group_id: int
+
+
+class GroupRemoveUserRequest(BaseModel):
+    user_id: int
+    group_id: int
+
+
+class EditGroupMemberRequest(BaseModel):
+    user_id: int
+    group_id: int
+    symmetric_key: str
 
 
 class OwnGroupInfo(BaseModel):
@@ -102,6 +113,64 @@ async def handle_add_group_user(req: Request, data: GroupAddUserRequest) -> Grou
             payload=JoinGroupNotification(group=group).model_dump_json().encode(),
             stream=STREAM_NAME,
         )
+
+        return membership
+
+
+@router.post("/remove")
+async def handle_remove_group_user(req: Request, data: GroupRemoveUserRequest) -> Group:
+    with Session(engine) as session:
+        uid = req.state.uid
+
+        group = session.exec(select(Group).where(Group.id == data.group_id)).one()
+
+        if group.owner_id != uid:
+            raise HTTPException(status_code=403, detail="Forbidden")
+
+        membership = session.exec(
+            select(GroupMember).where(
+                GroupMember.group_id == data.group_id,
+                GroupMember.user_id == data.user_id,
+            )
+        ).one_or_none()
+
+        if membership is None:
+            raise HTTPException(status_code=404, detail="User not found in group")
+
+        session.delete(membership)
+        session.commit()
+        session.refresh(membership)
+        session.refresh(group)
+
+        # Send notification to the user that he was removed from the group
+        js = await get_js()
+        await js.publish(
+            subject=f"{STREAM_NAME}.users.{data.user_id}",
+            payload=QuitGroupNotification(group_id=group.id).model_dump_json().encode(),
+            stream=STREAM_NAME,
+        )
+
+        return group
+
+
+@router.post("/edit")
+def handle_edit_group_member(req: Request, edit: EditGroupMemberRequest) -> GroupMember:
+    with Session(engine) as session:
+        group = session.exec(select(Group).where(Group.id == edit.group_id)).one()
+        membership = session.exec(
+            select(GroupMember).where(
+                GroupMember.user_id == edit.user_id,
+                GroupMember.group_id == edit.group_id,
+            )
+        ).one_or_none()
+
+        if membership is None:
+            raise HTTPException(status_code=404, detail="Group membership not found")
+
+        membership.symmetric_key = edit.symmetric_key
+        session.commit()
+        session.refresh(membership)
+        session.refresh(group)
 
         return membership
 
