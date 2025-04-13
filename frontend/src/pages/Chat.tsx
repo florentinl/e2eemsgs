@@ -115,7 +115,11 @@ const ChatPage: React.FC<{}> = () => {
 
   const handleAddUser = async (usernames: string[]) => {
     if (groupId === undefined) return;
-    const currSymKey = groups.get(groupId)?.symmetricKey;
+
+    const keys = groups.get(groupId)?.symmetricKeys!;
+    const lastKeyIndex = Math.max(...keys.keys());
+    const currSymKey = keys.get(lastKeyIndex)!;
+
     try {
       for (const username of usernames) {
         const userResponse = await handleGetUserByUsernameApiUsersUsernameGet({
@@ -142,6 +146,7 @@ const ChatPage: React.FC<{}> = () => {
             body: {
               user_id: userResponse.data.id,
               group_id: groupId,
+              key_index: lastKeyIndex,
               symmetric_key: ciphered_symKey,
             },
           });
@@ -205,6 +210,14 @@ const ChatPage: React.FC<{}> = () => {
 
       const newSymKey = generate_sym_key(); // New symmetric key of the group
 
+      const keys = currGroup.symmetricKeys!;
+      const newKeyIndex = Math.max(...keys.keys()) + 1;
+      currGroup.symmetricKeys.set(newKeyIndex, newSymKey);
+
+      const updatedGroups = new Map(groups);
+      updatedGroups.set(groupId, currGroup);
+      setGroups(updatedGroups);
+
       const fetchResponse = await handleGetGroupUsersApiGroupsUsersGet({
         query: { group_id: groupId },
       });
@@ -227,6 +240,7 @@ const ChatPage: React.FC<{}> = () => {
           body: {
             user_id: user.id,
             group_id: groupId,
+            key_index: newKeyIndex,
             symmetric_key: ciphered_symKey,
           },
         });
@@ -244,7 +258,9 @@ const ChatPage: React.FC<{}> = () => {
   const handleSendMessage = async (message: string, file: File | null) => {
     if (groupId === undefined) return;
 
-    const key = groups.get(groupId)?.symmetricKey!;
+    const keys = groups.get(groupId)?.symmetricKeys!;
+    const lastKeyIndex = Math.max(...keys.keys());
+    const key = keys.get(lastKeyIndex)!;
 
     const encryptedMessage =
       message.length == 0
@@ -258,6 +274,7 @@ const ChatPage: React.FC<{}> = () => {
           nonce: encryptedMessage.nonce,
           group_id: groupId,
           has_attachment: false,
+          key_index: lastKeyIndex,
         },
       });
     } else {
@@ -275,6 +292,7 @@ const ChatPage: React.FC<{}> = () => {
               message: encryptedMessage.message,
               message_nonce: encryptedMessage.nonce,
               file_nonce: encryptedFile.nonce,
+              key_index: lastKeyIndex,
             },
           });
         });
@@ -283,7 +301,9 @@ const ChatPage: React.FC<{}> = () => {
 
   const getDecryptedFile = async (msg: Message) => {
     if (groupId === undefined || msg.content.attachment == null) return null;
-    const key = groups.get(groupId)?.symmetricKey!;
+
+    const keyIndex = msg.content.key_index;
+    const key = groups.get(groupId)?.symmetricKeys.get(keyIndex)!;
 
     const response = await downloadApiMessagesDownloadPost({
       body: {

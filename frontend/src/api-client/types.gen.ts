@@ -6,6 +6,7 @@ export type BodyUploadApiMessagesUploadPost = {
     group_id: number;
     message: string;
     message_nonce: string;
+    key_index: number;
 };
 
 export type Challenge = {
@@ -30,6 +31,7 @@ export type DownloadFileRequest = {
 export type EditGroupMemberRequest = {
     user_id: number;
     group_id: number;
+    key_index: number;
     symmetric_key: string;
 };
 
@@ -57,6 +59,7 @@ export type Group = {
 
 export type GroupAddUserRequest = {
     user_id: number;
+    key_index: number;
     symmetric_key: string;
     group_id: number;
 };
@@ -64,7 +67,9 @@ export type GroupAddUserRequest = {
 export type GroupMember = {
     user_id: number;
     group_id: number;
-    symmetric_key: string;
+    symmetric_keys: {
+        [key: string]: string;
+    };
 };
 
 export type GroupMessageRequest = {
@@ -72,6 +77,7 @@ export type GroupMessageRequest = {
     nonce: string;
     group_id: number;
     has_attachment: boolean;
+    key_index: number;
 };
 
 export type GroupRemoveUserRequest = {
@@ -86,6 +92,7 @@ export type HttpValidationError = {
 export type Message = {
     id?: number | null;
     content: string;
+    key_index: number;
     has_attachment: boolean;
     nonce: string;
     sender_id: number;
@@ -99,6 +106,7 @@ export type MessageContent = {
     nonce: string;
     sender_id: number;
     group_id: number;
+    key_index: number;
 };
 
 export type MessageNotification = {
@@ -111,7 +119,9 @@ export type OwnGroupInfo = {
     owner_id: number;
     group_id: number;
     group_name: string;
-    symmetric_key: string;
+    symmetric_keys: {
+        [key: string]: string;
+    };
 };
 
 export type OwnGroupsResponse = {

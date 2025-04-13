@@ -1,5 +1,5 @@
 import logging
-from typing import List, Literal
+from typing import Dict, List, Literal
 
 from fastapi import APIRouter, HTTPException, Request
 from models import Group, GroupMember, User, engine
@@ -26,6 +26,7 @@ class GetUserMessage(BaseModel):
 
 class GroupAddUserRequest(BaseModel):
     user_id: int
+    key_index: int
     symmetric_key: str
     group_id: int
 
@@ -38,6 +39,7 @@ class GroupRemoveUserRequest(BaseModel):
 class EditGroupMemberRequest(BaseModel):
     user_id: int
     group_id: int
+    key_index: int
     symmetric_key: str
 
 
@@ -45,7 +47,7 @@ class OwnGroupInfo(BaseModel):
     owner_id: int
     group_id: int
     group_name: str
-    symmetric_key: str
+    symmetric_keys: Dict[int, str]
 
 
 class OwnGroupsResponse(BaseModel):
@@ -67,7 +69,7 @@ async def handle_create_group(req: Request, data: CreateGroupRequest) -> Group:
         membership = GroupMember(
             user_id=uid,
             group_id=group.id,
-            symmetric_key=data.symmetric_key,
+            symmetric_keys={0: data.symmetric_key},
         )
         session.add(membership)
         session.commit()
@@ -99,7 +101,7 @@ async def handle_add_group_user(req: Request, data: GroupAddUserRequest) -> Grou
         membership = GroupMember(
             user_id=data.user_id,
             group_id=group.id,
-            symmetric_key=data.symmetric_key,
+            symmetric_keys={data.key_index: data.symmetric_key},
         )
         session.add(membership)
         session.commit()
@@ -139,7 +141,6 @@ async def handle_remove_group_user(req: Request, data: GroupRemoveUserRequest) -
 
         session.delete(membership)
         session.commit()
-        session.refresh(membership)
         session.refresh(group)
 
         # Send notification to the user that he was removed from the group
@@ -167,7 +168,7 @@ def handle_edit_group_member(req: Request, edit: EditGroupMemberRequest) -> Grou
         if membership is None:
             raise HTTPException(status_code=404, detail="Group membership not found")
 
-        membership.symmetric_key = edit.symmetric_key
+        membership.symmetric_keys[edit.key_index] = edit.symmetric_key
         session.commit()
         session.refresh(membership)
         session.refresh(group)
@@ -190,12 +191,13 @@ def handle_get_user_groups(req: Request) -> OwnGroupsResponse:
             group = session.exec(
                 select(Group).where(Group.id == membership.group_id)
             ).one()
+
             groups.append(
                 OwnGroupInfo(
                     owner_id=group.owner_id,
                     group_id=membership.group_id,
                     group_name=group.name,
-                    symmetric_key=membership.symmetric_key,
+                    symmetric_keys=membership.symmetric_keys,  # not great
                 )
             )
 

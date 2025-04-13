@@ -21,13 +21,15 @@ export const useWebSocket = () => {
         for (const message of messages) {
           const group = groupMap.get(message.message.group_id);
           if (!group) continue;
+          const key = group.symmetricKeys.get(message.message.key_index);
+          if (!key) continue;
 
           const decrypted = sym_decrypt(
             {
               nonce: message.message.nonce,
               message: message.message.content,
             },
-            group.symmetricKey
+            key
           );
 
           group.messages.set(message.message.id!, {
@@ -40,6 +42,7 @@ export const useWebSocket = () => {
               nonce: message.message.nonce,
               sender_id: message.message.sender_id,
               group_id: message.message.group_id,
+              key_index: message.message.key_index,
             },
           });
         }
@@ -73,13 +76,15 @@ export const useWebSocket = () => {
             const newGroups = new Map(groups);
             const msg = notification.message;
             const group = newGroups.get(notification.message.group_id)!;
+            const key = group.symmetricKeys.get(msg.key_index);
+            if (!key) return newGroups;
 
             const clearMessage = sym_decrypt(
               {
                 nonce: msg.nonce,
                 message: msg.content,
               },
-              group.symmetricKey
+              key
             );
 
             const message: Message = {
@@ -92,6 +97,7 @@ export const useWebSocket = () => {
                 nonce: msg.nonce,
                 sender_id: msg.sender_id,
                 group_id: msg.group_id,
+                key_index: msg.key_index,
               },
             };
 

@@ -1,7 +1,7 @@
 from typing import List, Optional
 
 from config import DATABASE_URL
-from sqlmodel import Field, Relationship, SQLModel, create_engine
+from sqlmodel import JSON, Column, Field, Relationship, SQLModel, create_engine
 
 engine = create_engine(
     DATABASE_URL,
@@ -41,7 +41,7 @@ class Group(SQLModel, table=True):
 class GroupMember(SQLModel, table=True):
     user_id: int = Field(foreign_key="user.id", primary_key=True)
     group_id: int = Field(foreign_key="group.id", primary_key=True)
-    symmetric_key: str
+    symmetric_keys: dict[int, str] = Field(sa_column=Column(JSON))
     user: Optional[User] = Relationship(back_populates="groups")
     group: Optional[Group] = Relationship(back_populates="members")
 
@@ -59,6 +59,7 @@ class File(SQLModel, table=True):
 class Message(SQLModel, table=True):
     id: int | None = Field(default=None, primary_key=True)
     content: str
+    key_index: int
     has_attachment: bool
     nonce: str
     sender_id: int = Field(foreign_key="user.id")

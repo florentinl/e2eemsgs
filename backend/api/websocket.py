@@ -6,10 +6,10 @@ import jwt
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect
 from models import Group, User, engine
 from nats.aio.msg import Msg
+from notifications import STREAM_NAME, NATSMultiSubjectConsumer
 from pydantic import BaseModel, Field
 from sqlmodel import Session, select
 
-from notifications import STREAM_NAME, NATSMultiSubjectConsumer
 from api.session import check_cookie
 
 logger = logging.getLogger("uvicorn")
@@ -31,6 +31,7 @@ class MessageContent(BaseModel):
     nonce: str
     sender_id: int
     group_id: int
+    key_index: int
 
 
 class MessageNotification(BaseModel):

@@ -22,6 +22,7 @@ class GroupMessageRequest(BaseModel):
     nonce: str
     group_id: int
     has_attachment: bool
+    key_index: int
 
 
 class DownloadFileRequest(BaseModel):
@@ -43,7 +44,7 @@ async def send_message(
             )
         ).one_or_none()
     if membership is None:
-        HTTPException(status_code=403, detail="Unauthorized")
+        raise HTTPException(status_code=403, detail="Unauthorized")
 
     js = await get_js()
 
@@ -53,6 +54,7 @@ async def send_message(
         has_attachment=message_request.has_attachment,
         group_id=message_request.group_id,
         sender_id=user_id,
+        key_index=message_request.key_index,
     )
 
     # Persist message
@@ -72,6 +74,7 @@ async def send_message(
         nonce=message.nonce,
         sender_id=message.sender_id,
         group_id=message.group_id,
+        key_index=message.key_index,
     )
     # Send message notification
     group_message = MessageNotification(
@@ -113,6 +116,7 @@ async def get_group_messages(request: Request) -> list[MessageNotification]:
                                 nonce=m.nonce,
                                 sender_id=m.sender_id,
                                 group_id=m.group_id,
+                                key_index=m.key_index,
                             ),
                             sender_name=m.sender.username,  # type: ignore
                         ),
@@ -130,6 +134,7 @@ async def upload(
     group_id: Annotated[int, Form()],
     message: Annotated[str, Form()],
     message_nonce: Annotated[str, Form()],
+    key_index: Annotated[int, Form()],
 ):
     user_id: int = req.state.uid
 
@@ -173,6 +178,7 @@ async def upload(
         group_id=group_id,
         has_attachment=True,
         sender_id=user_id,
+        key_index=key_index,
     )
 
     # Persist message
@@ -214,6 +220,7 @@ async def upload(
         nonce=new_message.nonce,
         sender_id=new_message.sender_id,
         group_id=new_message.group_id,
+        key_index=new_message.key_index,
     )
 
     # Send message notification

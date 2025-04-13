@@ -18,12 +18,18 @@ export const fetchGroups = async () => {
 
   const groupMap: Groups = new Map();
   data.forEach((group) => {
-    const decryptedGroupKey = asym_decrypt(group.symmetric_key, privateKey);
+    const symmetricKeys = new Map<number, string>();
+
+    Object.entries(group.symmetric_keys).forEach(([index, key]) => {
+      const decryptedKey = asym_decrypt(key, privateKey);
+      symmetricKeys.set(Number(index), decryptedKey);
+    });
+
     groupMap.set(group.group_id, {
       id: group.group_id,
       ownerId: group.owner_id,
       name: group.group_name,
-      symmetricKey: decryptedGroupKey,
+      symmetricKeys: symmetricKeys,
       members: new Set(),
       messages: new Map(),
     });
