@@ -65,6 +65,9 @@ export const useWebSocket = () => {
         if (notification.type == "joinedGroupNotification") {
           refetchGroupsAndMessages();
         }
+        if (notification.type == "quitGroupNotification") {
+          refetchGroupsAndMessages();
+        }
         if (notification.type == "messageNotification") {
           setGroups((groups) => {
             const newGroups = new Map(groups);
