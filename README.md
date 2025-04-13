@@ -10,7 +10,7 @@ By default it downloads a prebuilt image to avoid the need for building which ca
 docker compose -f docker-compose.prod.yaml up -d # Add `--build` to force rebuilding it
 ```
 
-The site should be available on `http://localhost:3000`.
+The site should be available on `http://localhost:8000`.
 
 ## Compiling the project
 
