@@ -31,7 +31,7 @@ export type DownloadFileRequest = {
 export type EditGroupMemberRequest = {
     user_id: number;
     group_id: number;
-    key_index: number;
+    key_index: string;
     symmetric_key: string;
 };
 
@@ -59,7 +59,7 @@ export type Group = {
 
 export type GroupAddUserRequest = {
     user_id: number;
-    key_index: number;
+    key_index: string;
     symmetric_key: string;
     group_id: number;
 };
@@ -92,7 +92,7 @@ export type HttpValidationError = {
 export type Message = {
     id?: number | null;
     content: string;
-    key_index: number;
+    key_index: string;
     has_attachment: boolean;
     nonce: string;
     sender_id: number;
@@ -106,7 +106,7 @@ export type MessageContent = {
     nonce: string;
     sender_id: number;
     group_id: number;
-    key_index: number;
+    key_index: string;
 };
 
 export type MessageNotification = {

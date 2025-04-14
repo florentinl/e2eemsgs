@@ -26,7 +26,7 @@ class GetUserMessage(BaseModel):
 
 class GroupAddUserRequest(BaseModel):
     user_id: int
-    key_index: int
+    key_index: str
     symmetric_key: str
     group_id: int
 
@@ -39,7 +39,7 @@ class GroupRemoveUserRequest(BaseModel):
 class EditGroupMemberRequest(BaseModel):
     user_id: int
     group_id: int
-    key_index: int
+    key_index: str
     symmetric_key: str
 
 
@@ -47,7 +47,7 @@ class OwnGroupInfo(BaseModel):
     owner_id: int
     group_id: int
     group_name: str
-    symmetric_keys: Dict[int, str]
+    symmetric_keys: Dict[str, str]
 
 
 class OwnGroupsResponse(BaseModel):
@@ -69,7 +69,7 @@ async def handle_create_group(req: Request, data: CreateGroupRequest) -> Group:
         membership = GroupMember(
             user_id=uid,
             group_id=group.id,
-            symmetric_keys={0: data.symmetric_key},
+            symmetric_keys={"0": data.symmetric_key},
         )
         session.add(membership)
         session.commit()

@@ -31,7 +31,7 @@ class MessageContent(BaseModel):
     nonce: str
     sender_id: int
     group_id: int
-    key_index: int
+    key_index: str
 
 
 class MessageNotification(BaseModel):

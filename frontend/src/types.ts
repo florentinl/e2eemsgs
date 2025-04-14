@@ -6,7 +6,7 @@ export type Group = {
   id: number;
   ownerId: number;
   name: string;
-  symmetricKeys: Map<number, string>;
+  symmetricKeys: Map<string, string>;
   members: Set<User>;
   messages: Map<number, Message>;
   draft?: string;

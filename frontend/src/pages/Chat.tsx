@@ -117,7 +117,7 @@ const ChatPage: React.FC<{}> = () => {
     if (groupId === undefined) return;
 
     const keys = groups.get(groupId)?.symmetricKeys!;
-    const lastKeyIndex = Math.max(...keys.keys());
+    const lastKeyIndex = (Math.max(...[...keys.keys()].map(Number))).toString();
     const currSymKey = keys.get(lastKeyIndex)!;
 
     try {
@@ -211,8 +211,8 @@ const ChatPage: React.FC<{}> = () => {
       const newSymKey = generate_sym_key(); // New symmetric key of the group
 
       const keys = currGroup.symmetricKeys!;
-      const newKeyIndex = Math.max(...keys.keys()) + 1;
-      currGroup.symmetricKeys.set(newKeyIndex, newSymKey);
+      const newKeyIndex = (Math.max(...[...keys.keys()].map(Number)) + 1).toString();
+      currGroup.symmetricKeys.set(newKeyIndex.toString(), newSymKey);
 
       const updatedGroups = new Map(groups);
       updatedGroups.set(groupId, currGroup);
@@ -223,7 +223,7 @@ const ChatPage: React.FC<{}> = () => {
       });
       if (fetchResponse.error) {
         if (fetchResponse.response.status == 403) {
-          console.error("Not allowed to remove user");
+          console.error("Group members not found");
           return;
         } else {
           console.error("Internal server error");
@@ -259,8 +259,8 @@ const ChatPage: React.FC<{}> = () => {
     if (groupId === undefined) return;
 
     const keys = groups.get(groupId)?.symmetricKeys!;
-    const lastKeyIndex = Math.max(...keys.keys());
-    const key = keys.get(lastKeyIndex)!;
+    const lastKeyIndex = Math.max(...[...keys.keys()].map(Number));
+    const key = keys.get(lastKeyIndex.toString())!;
 
     const encryptedMessage =
       message.length == 0
