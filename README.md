@@ -1,5 +1,7 @@
 # End to End Encrypted messages
 
+With the end of this assignment, I archived the project. The other main contributor Déodat Père has forked the repo, you can find it here: https://github.com/deodat-pere/e2eemsgs
+
 ## Run using docker-compose
 
 WARNING: the default docker-compose.yaml is for dev only, you should use the `docker-compose.prod.yaml` to test the website in its "production" build.
